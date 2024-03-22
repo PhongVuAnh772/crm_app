@@ -1,0 +1,238 @@
+import {
+  StyleSheet,
+  Text,
+  View,
+  StatusBar,
+  ImageBackground,
+  Dimensions,
+  ScrollView,
+  TextInput,
+  TouchableOpacity,
+  Image,
+  ActivityIndicator,
+} from 'react-native';
+import React, {useState} from 'react';
+import zikiProduct from './assets/zikii-product.png';
+import zikiiLogoWhite from './assets/logozikii_trang.png';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import axios from 'axios';
+import {useSelector, useDispatch} from 'react-redux';
+import {UPDATE_USER_DATA} from '../../slices/users/userSlice';
+import {useNavigation} from '@react-navigation/native';
+import { UPDATE_LOGIN_REQUIRED } from '../../slices/auth/authSlice';
+const widthDimension = Dimensions.get('screen').width;
+const heightDimension = Dimensions.get('screen').height;
+
+const LoginScreen = () => {
+  const navigation = useNavigation();
+
+  const dispatch = useDispatch();
+  const network = useSelector(state => state.network.ipv4);
+  const [isFocusedUsername, setIsFocusedUsername] = useState(false);
+  const [isFocusedPassword, setIsFocusedPassword] = useState(false);
+  const [inputPhone, setInputPhone] = useState('0816560000');
+  const [inputPassword, setInputPassword] = useState('123456');
+  const [errMessage, setErrorMessage] = useState('');
+  const [loading, setLoading] = useState(false);
+  const handleLogin = async () => {
+    setLoading(true);
+    const response = await axios.post(`${network}/checkLoginMemberAPI`, {
+      phone: inputPhone,
+      password: inputPassword,
+    });
+    if (response.data && response.data.code === 0) {
+      dispatch(UPDATE_USER_DATA(response.data.info_member));
+            dispatch(UPDATE_LOGIN_REQUIRED());
+
+      setLoading(false);
+      navigation.reset({
+        index: 0,
+        routes: [{name: 'HomeTabNavigators'}],
+      });
+      // navigation.navigate('HomeTabNavigators');
+    } else {
+      setLoading(false);
+
+      setErrorMessage(true);
+    }
+  };
+  return (
+    <View style={styles.container}>
+      <StatusBar barStyle="light-content" backgroundColor="rgb(5, 106, 255)" />
+      <Image
+        source={zikiProduct}
+        resizeMode="contain"
+        style={styles.imageBackground}></Image>
+      <View style={styles.containerBackground}>
+        <Image source={zikiiLogoWhite} style={styles.logoAssets} />
+        <View style={styles.containerLogoHelp}>
+          <MaterialIcons name="support-agent" size={20} color="black" />
+        </View>
+      </View>
+      <ScrollView style={styles.loginContainer}>
+        <Text style={styles.loginTitle}>Đăng nhập</Text>
+        <View
+          style={[
+            styles.inputContainer,
+            isFocusedUsername && styles.focusedInput,
+          ]}>
+          <Text
+            style={[styles.labelText, isFocusedUsername && styles.focusedText]}>
+            Số điện thoại
+          </Text>
+          <TextInput
+            style={[styles.input, isFocusedUsername && styles.focusedInput]}
+            onFocus={() => setIsFocusedUsername(true)}
+            onBlur={() => setIsFocusedUsername(false)}
+            maxLength={12}
+            keyboardType="numeric"
+            onChangeText={text => {
+              setErrorMessage(false);
+              setInputPhone(text);
+            }}
+            value={inputPhone}
+          />
+        </View>
+        <View
+          style={[
+            styles.inputContainer,
+            isFocusedPassword && styles.focusedInput,
+          ]}>
+          <Text
+            style={[styles.labelText, isFocusedPassword && styles.focusedText]}>
+            Mật khẩu
+          </Text>
+          <TextInput
+            style={[styles.input]}
+            secureTextEntry={true}
+            maxLength={50}
+            onFocus={() => setIsFocusedPassword(true)}
+            onBlur={() => setIsFocusedPassword(false)}
+            onChangeText={text => {
+              setInputPassword(text);
+              setErrorMessage(false);
+            }}
+            value={inputPassword}
+          />
+        </View>
+        <TouchableOpacity onPress={() => navigation.navigate('ForgetPasswordIndex')}>
+          <Text style={styles.loginButtonForgotText}>Quên mật khẩu ?</Text>
+        </TouchableOpacity>
+        {errMessage && (
+          <Text
+            style={[
+              styles.loginButtonForgotText,
+              {color: 'red', fontWeight: '500'},
+            ]}>
+            Sai tài khoản hoặc mật khẩu, hãy thử lại
+          </Text>
+        )}
+
+        <TouchableOpacity
+          style={styles.loginButton}
+          onPress={() => handleLogin()}>
+          {loading ? (
+            <ActivityIndicator size="small" color="white" />
+          ) : (
+            <Text style={styles.loginButtonText}>Đăng nhập</Text>
+          )}
+        </TouchableOpacity>
+      </ScrollView>
+    </View>
+  );
+};
+
+export default LoginScreen;
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: 'rgb(5, 106, 255)',
+    position: 'relative',
+    alignItems: 'center',
+  },
+  loginContainer: {
+    backgroundColor: 'white',
+    width: '100%',
+    position: 'absolute',
+    bottom: 0,
+    borderTopLeftRadius: 10,
+    borderTopRightRadius: 10,
+    paddingVertical: heightDimension * 0.02,
+    paddingHorizontal: widthDimension * 0.05,
+  },
+  loginTitle: {
+    color: 'black',
+    fontSize: 22,
+    fontWeight: '500',
+  },
+  inputContainer: {
+    width: '100%',
+    borderColor: 'rgb(245, 245, 245)',
+    borderWidth: 1,
+    marginTop: 15,
+    paddingTop: heightDimension * 0.01,
+    paddingHorizontal: widthDimension * 0.03,
+    borderRadius: 10,
+  },
+  input: {
+    width: '100%',
+    fontSize: 18,
+  },
+  labelText: {
+    color: 'rgb(114, 119, 127)',
+    fontSize: 17,
+  },
+  focusedText: {
+    color: 'rgb(5, 106, 255)', // Màu văn bản khi focus
+  },
+  focusedInput: {
+    borderColor: 'rgb(5, 106, 255)', // Màu viền khi focus
+  },
+  loginButton: {
+    backgroundColor: 'rgb(5, 106, 255)',
+    marginTop: heightDimension * 0.03,
+    paddingVertical: heightDimension * 0.02,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  loginButtonText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: 'rgb(255, 255, 255)',
+  },
+  loginButtonForgotText: {
+    color: 'rgb(5, 106, 255)',
+    marginTop: heightDimension * 0.03,
+    fontSize: 16,
+  },
+  imageBackground: {
+    justifyContent: 'center',
+    width: '80%',
+    height: '60%',
+  },
+  logoAssets: {
+    width: 100,
+    height: 100,
+    resizeMode: 'contain',
+  },
+  containerBackground: {
+    position: 'absolute',
+    top: 20,
+    paddingHorizontal: widthDimension * 0.05,
+    justifyContent: 'space-between',
+    flexDirection: 'row',
+    width: '100%',
+    alignItems: 'center',
+  },
+  containerLogoHelp: {
+    width: 40,
+    height: 40,
+    backgroundColor: 'white',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 25,
+    alignSelf: 'center',
+  },
+});
