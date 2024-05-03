@@ -6,21 +6,22 @@ import {useNavigation} from '@react-navigation/native';
 
 const heightDimension = Dimensions.get('screen').height;
 const widthDimension = Dimensions.get('screen').width;
-
+const { width } = Dimensions.get('window');
+const isSmallScreen = width < 375; 
 const SpecifiedProductHeader = () => {
     const navigation = useNavigation();
   return (
     <View style={styles.container}>
       <TouchableOpacity  onPress={() => navigation.goBack()}>
         <View style={styles.iconCartContainer}>
-        <FontAwesome6 name="chevron-left" size={18} color="rgb(42, 112, 234)" />
+        <FontAwesome6 name="chevron-left" size={isSmallScreen ? 13: 18} color="rgb(37, 41, 109)" />
 
         </View>
       </TouchableOpacity>
       <TouchableOpacity  onPress={() => navigation.navigate('CartScreen')}>
         
         <View style={styles.iconCartContainer}>
-            <FontAwesome6 name="cart-shopping" size={18} color="rgb(42, 112, 234)" />
+            <FontAwesome6 name="cart-shopping" size={isSmallScreen ? 13: 18} color="rgb(37, 41, 109)" />
         </View>
       </TouchableOpacity>
 

@@ -6,9 +6,7 @@ import LoginRequired from '../../../../../auth/required/LoginRequired'
 import { useSelector,useDispatch } from "react-redux"
 const ExpandIndex = () => {
   const loginChecking = useSelector(state => state.auth.login)
-  useEffect(() => {
-    console.log(loginChecking)
-  }, [])
+
   
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator>      

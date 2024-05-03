@@ -5,6 +5,11 @@ import {
   Image,
   Dimensions,
   StatusBar,
+  ActivityIndicator,
+  TouchableOpacity,
+  Modal,
+  ScrollView,
+  Linking
 } from 'react-native';
 import React, {useState, useEffect} from 'react';
 import CircularProgress from 'react-native-circular-progress-indicator';
@@ -19,13 +24,151 @@ import CountdownTimer from '../hooks/CountDownTimer';
 import HomeContentSecond from '../../../Home/main/content/HomeContentSecond';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import axios from 'axios';
+import {useSelector, useDispatch} from 'react-redux';
+import {useNavigation} from '@react-navigation/native';
+import {UPDATE_USER_DATA} from '../../../../../../../slices/users/userSlice';
+import {UPDATE_LOGOUT_REQUIRED} from '../../../../../../../slices/auth/authSlice';
+import askingIcon from '../../../../../assets/question.png';
+import * as Burnt from 'burnt';
+import {CLEAR_USER_DATA} from '../../../../../../../slices/users/userSlice';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import CheckBox from '@react-native-community/checkbox';
+
+const {width} = Dimensions.get('window');
+const isSmallScreen = width < 375;
+
 const widthDimension = Dimensions.get('screen').width;
 const heightDimension = Dimensions.get('screen').height;
 
 const PersonalContent = () => {
+  const dispatch = useDispatch();
+  const network = useSelector(state => state.network.ipv4);
+  const navigation = useNavigation();
+  const token = useSelector(state => state.auth.token);
+  const [loading, setLoading] = useState(false);
+  const [modalDelete, setModalDelete] = useState(false);
+  const handleDontCare = () => {
+    setModalDelete(false);
+  };
+  const handleLogout = async () => {
+    setLoading(true);
+    const response = await axios.post(`${network}/logoutMemberAPI`, {
+      token: token,
+    });
+    if (response.data && response.data.code === 0) {
+      dispatch(UPDATE_USER_DATA([]));
+      dispatch(UPDATE_LOGOUT_REQUIRED());
+      setLoading(false);
+      navigation.reset({
+        index: 0,
+        routes: [{name: 'HomeTabNavigators'}],
+      });
+      await AsyncStorage.removeItem('user_data');
+    } else {
+      dispatch(UPDATE_USER_DATA([]));
+      dispatch(UPDATE_LOGOUT_REQUIRED());
+      setLoading(false);
+      navigation.reset({
+        index: 0,
+        routes: [{name: 'HomeTabNavigators'}],
+      });
+      await AsyncStorage.removeItem('user_data');
+    }
+  };
+  const handleAccept = async () => {
+    const response = await axios.post(`${network}/lockMemberAPI`, {
+      token: token,
+    });
+    if (response.data && response.data.code === 0) {
+      dispatch(CLEAR_USER_DATA());
+      dispatch(UPDATE_LOGOUT_REQUIRED());
+      setLoading(false);
+      navigation.reset({
+        index: 0,
+        routes: [{name: 'HomeTabNavigators'}],
+      });
+    }
+  };
   return (
     <>
-      <StatusBar barStyle="light-content" backgroundColor="rgb(5, 106, 255)" />
+      <StatusBar barStyle="light-content" backgroundColor="rgb(37, 41, 109)" />
+
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={modalDelete}
+        onRequestClose={() => {
+          setModalDelete(false);
+        }}>
+        <StatusBar barStyle="light-content" backgroundColor="rgba(0,0,0,0.5)" />
+
+        <View style={styles.centeredView}>
+          <View style={styles.modalView}>
+            <Image source={askingIcon} style={styles.modalIcon} alt=""/>
+            <Text
+              style={{
+                fontSize: 16,
+                fontWeight: 'bold',
+                color: 'black',
+                paddingTop: 20,
+                textAlign: 'center',
+              }}>
+              Bạn có muốn xóa tài khoản ?
+            </Text>
+            <Text
+              style={{
+                fontSize: 16,
+                paddingTop: 20,
+                textAlign: 'center',
+                paddingBottom: 20,
+              }}>
+              Nếu đồng ý bạn hãy chờ chúng tôi xét duyệt
+            </Text>
+            <View style={styles.buttonModalContainer}>
+              <TouchableOpacity
+                style={{
+                  width: '40%',
+                  paddingVertical: 15,
+                  backgroundColor: 'gray',
+                  borderRadius: 15,
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                }}
+                onPress={() => handleDontCare()}>
+                <Text
+                  style={{fontSize: 15, fontWeight: 'bold', color: 'white'}}>
+                  Không đồng ý
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={{
+                  width: '55%',
+                  paddingVertical: 15,
+                  backgroundColor: 'rgb(37, 41, 109)',
+                  borderRadius: 15,
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                }}
+                onPress={() => handleAccept()}>
+                <Text
+                  style={{fontSize: 16, fontWeight: 'bold', color: 'white'}}>
+                  {loading ? (
+                    <ActivityIndicator
+                      size="small"
+                      color="white"
+                      style={{alignSelf: 'center'}}
+                    />
+                  ) : (
+                    'Đồng ý'
+                  )}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
 
       <View style={styles.titleMainContainer}>
         <View style={styles.circle} />
@@ -79,7 +222,7 @@ const PersonalContent = () => {
       </View> */}
         {/* <View style={{paddingVertical: 10}}><HomeContentSecond /></View> */}
         <View style={[styles.infoContainer, {paddingVertical: 5}]}>
-          <Image source={verifiedIcon} style={styles.verifiedIconAssets} />
+          <Image source={verifiedIcon} style={styles.verifiedIconAssets} alt=""/>
           <View style={styles.infoSimpleContainer}>
             <Text style={styles.actionText}>Xác minh ngay</Text>
             <Text style={styles.allStatusTextDescriptionNow}>
@@ -178,37 +321,63 @@ const PersonalContent = () => {
             />
           </View>
         </View>
-        <View style={styles.logoutButton}>
-          <Text style={styles.logoutButtonText}>Đăng xuất</Text>
-        </View>
-        <View style={styles.deleteAccountButton}>
+        <TouchableOpacity
+          style={styles.logoutButton}
+          onPress={() => handleLogout()}>
+          {loading ? (
+            <ActivityIndicator size="small" color="white" />
+          ) : (
+            <Text style={styles.logoutButtonText}>Đăng xuất</Text>
+          )}
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.deleteAccountButton}
+          onPress={() => setModalDelete(true)}>
           <Text style={styles.deleteAccountButtonText}>Xóa tài khoản</Text>
-        </View>
+        </TouchableOpacity>
         <View style={styles.iconAffiliateContainer}>
-          <View style={styles.iconAffiliateIconContainer}>
+          <TouchableOpacity
+            style={styles.iconAffiliateIconContainer}
+            onPress={() =>
+              Linking.openURL(
+                'https://www.facebook.com/ZIKIIChamTayBayNamTuyetZIKII',
+              )
+            }>
             <View style={styles.iconAffiliateIcon}>
               <FontAwesome6 name="facebook-f" size={23} color="white" />
             </View>
             <Text style={styles.iconAffiliateText}>Facebook</Text>
-          </View>
-          <View style={styles.iconAffiliateIconContainer}>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.iconAffiliateIconContainer} onPress={() =>
+              Linking.openURL(
+                'https://www.instagram.com/explore/locations/100854702731966/zikii-tng-chm-tay-bay-nam/i',
+              )
+          }>
             <View style={styles.iconAffiliateIcon}>
               <Feather name="instagram" size={23} color="white" />
             </View>
             <Text style={styles.iconAffiliateText}>Instagram</Text>
-          </View>
-          <View style={styles.iconAffiliateIconContainer}>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.iconAffiliateIconContainer} onPress={() =>
+              Linking.openURL(
+                'https://www.youtube.com/@tuyetzikii',
+              )
+          }>
             <View style={styles.iconAffiliateIcon}>
               <Feather name="youtube" size={23} color="white" />
             </View>
             <Text style={styles.iconAffiliateText}>Youtube</Text>
-          </View>
-          <View style={styles.iconAffiliateIconContainer}>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.iconAffiliateIconContainer}  onPress={() =>
+              Linking.openURL(
+                'https://www.tiktok.com/@bangvananh?lang=en',
+              )
+            }>
             <View style={styles.iconAffiliateIcon}>
               <Ionicons name="logo-tiktok" size={23} color="white" />
             </View>
             <Text style={styles.iconAffiliateText}>Tiktok</Text>
-          </View>
+          </TouchableOpacity>
         </View>
         <Text style={styles.textAffiliateTrendingFirst}>
           Công ty cổ phần thương mại quốc tế HT NATURAL
@@ -224,22 +393,25 @@ export default PersonalContent;
 const styles = StyleSheet.create({
   textAffiliateTrendingFirst: {
     textAlign: 'center',
-    fontSize: 16,
+    fontSize: 13,
+    color: 'black',
   },
   textAffiliateTrending: {
     textAlign: 'center',
     paddingTop: 20,
-    fontSize: 16,
+    fontSize: 13,
+    color: 'black',
   },
   iconAffiliateText: {
     fontWeight: 'bold',
     paddingTop: 15,
-    fontSize: 15,
+    fontSize: 13,
+    color: 'black',
   },
   iconAffiliateIcon: {
     width: 50,
     height: 50,
-    backgroundColor: 'rgb(5, 106, 255)',
+    backgroundColor: 'rgb(37, 41, 109)',
     borderRadius: 25,
     alignItems: 'center',
     justifyContent: 'center',
@@ -284,9 +456,10 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
   },
   deleteAccountButtonText: {
-    color: 'gray',
-    fontSize: 18,
+    fontSize: 15,
     fontWeight: 'bold',
+    backgroundColor: 'white',
+    color: 'black',
   },
   deleteAccountButton: {
     width: '100%',
@@ -296,12 +469,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderRadius: 20,
     alignSelf: 'center',
+    backgroundColor: 'white',
   },
 
   titleMainContainer: {
     width: '100%',
     height: heightDimension * 0.13,
-    backgroundColor: 'rgb(50, 111, 226)',
+    backgroundColor: 'rgb(37, 41, 109)',
     justifyContent: 'flex-end',
     paddingVertical: 25,
     paddingHorizontal: 15,
@@ -312,7 +486,8 @@ const styles = StyleSheet.create({
   titleMainText: {
     color: 'white',
     fontWeight: 'bold',
-    fontSize: 30,
+                    fontSize: isSmallScreen ? 23 : 30,
+
   },
   container: {
     paddingHorizontal: 15,
@@ -330,7 +505,7 @@ const styles = StyleSheet.create({
   },
   logoutButtonText: {
     color: 'white',
-    fontSize: 20,
+    fontSize: 15,
     fontWeight: 'bold',
   },
   coinContainer: {
@@ -405,8 +580,12 @@ const styles = StyleSheet.create({
     paddingTop: 10,
     fontWeight: '500',
   },
+  modalIcon: {
+    height: 100,
+    width: 100,
+  },
   actionText: {
-    fontSize: 20,
+    fontSize: isSmallScreen ? 15 : 20,
     fontWeight: '400',
     color: 'black',
   },
@@ -424,7 +603,7 @@ const styles = StyleSheet.create({
   },
   allStatusTextDescriptionNow: {
     color: 'black',
-    fontSize: 15,
+    fontSize: isSmallScreen ? 12 : 15,
     fontWeight: '300',
     paddingTop: 5,
   },
@@ -443,5 +622,33 @@ const styles = StyleSheet.create({
     borderRadius: 50,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  centeredView: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+  },
+  modalView: {
+    margin: 20,
+    backgroundColor: 'white',
+    borderRadius: 20,
+    width: widthDimension * 0.9,
+    paddingHorizontal: 20,
+    paddingVertical: 20,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  buttonModalContainer: {
+    width: '100%',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
   },
 });

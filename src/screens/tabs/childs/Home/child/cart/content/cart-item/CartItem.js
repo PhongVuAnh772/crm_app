@@ -1,15 +1,23 @@
 import {StyleSheet, Text, View, Dimensions,Image} from 'react-native';
-import React from 'react';
+import React,{useEffect} from 'react';
 import FontAwesome6 from 'react-native-vector-icons/FontAwesome6';
 
 const heightDimension = Dimensions.get('screen').height;
 const widthDimension = Dimensions.get('screen').width;
 
-const CartItem = () => {
+const CartItem = ({item}) => {
+  
+  const formatPrice = price => {
+    const formattedPrice = price
+      .toString()
+      .replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    return `${formattedPrice} đ`;
+  };
+  
   return (
     <View style={styles.container}>
       
-        <Image source={{uri: 'https://crm.zikii.vn/upload/admin/files/logozikii.png'}} style={{
+        <Image source={{uri: item.image}} alt="" style={{
           height: '100%',
           width: '30%',
           borderRadius: 15,
@@ -21,23 +29,25 @@ const CartItem = () => {
       <View style={styles.cartItemInformationContainer}>
         <View style={styles.cartItemInformationTopContainer}>
           <Text style={styles.cartItemInformationTitle}>
-            Men Classic Fit Dress Suit Classic Fit Dress Suit
+            {item.title}
           </Text>
-          <Text style={styles.cartItemDescription}>Size: L</Text>
-          <Text style={styles.cartItemDescription}>Color: blue</Text>
+          <Text style={styles.cartItemDescription}>Số lượng hiện có: {item.quantity}</Text>
+          <Text style={styles.cartItemDescriptionPrice}>Giá gốc: {formatPrice(item.price)}</Text>
+                    <Text style={styles.cartItemDescriptionQuantity}>Số lượng bạn đặt: {item.quantityProduct}</Text>
+
         </View>
         <View style={styles.cartItemInformationBottomContainer}>
           <View style={styles.cartItemValueContainer}>
-            <View style={styles.cartItemButtonValueContainer}>
+            {/* <View style={styles.cartItemButtonValueContainer}>
               <FontAwesome6 name="trash" size={15} color="rgb(42, 112, 234)" />
-            </View>
-            <Text style={styles.cartItemButtonValueText}>1</Text>
-            <View style={styles.cartItemButtonValueContainer}>
+            </View> */}
+            {/* <Text style={styles.cartItemButtonValueText}>{item.quantityProduct}</Text> */}
+            {/* <View style={styles.cartItemButtonValueContainer}>
               <FontAwesome6 name="add" size={15} color="rgb(42, 112, 234)" />
-            </View>
+            </View> */}
               
           </View>
-          <Text style={styles.priceText}>Tổng: <Text style={{color:"rgb(42, 112, 234)"}}>16.57$</Text></Text>
+          <Text style={styles.priceText}>Tổng: <Text style={{color:"rgb(42, 112, 234)"}}>{formatPrice(item.quantityProduct * item.price)}</Text></Text>
         </View>
       </View>
     </View>
@@ -69,8 +79,21 @@ const styles = StyleSheet.create({
     paddingRight: 100,
   },
   cartItemDescription: {
-    fontSize: 16,
+    fontSize: 17,
     paddingTop: 3,
+    color:'black'
+  },
+  cartItemDescriptionPrice: {
+    fontSize: 19,
+    paddingTop: 3,
+    color:'blue',
+    fontWeight: '500',
+  },
+  cartItemDescriptionQuantity: {
+   fontSize: 19,
+    paddingTop: 3,
+    color:'red',
+    fontWeight: '500',
   },
   cartItemInformationBottomContainer: {
     flexDirection: 'row',

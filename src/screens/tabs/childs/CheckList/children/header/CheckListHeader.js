@@ -30,7 +30,7 @@ const CheckListHeader = () => {
   return (
     <View style={styles.container}>
       <View style={styles.logoContainer}>
-        <Image source={zikiOfficialLogo} style={styles.imageLogo} />
+        <Image source={zikiOfficialLogo} style={styles.imageLogo} alt=""/>
         <View style={styles.separator} />
         <Text style={styles.titleSearchingLogo}>Chạm tay bay nám</Text>
       </View>

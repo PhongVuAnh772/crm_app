@@ -1,9 +1,9 @@
 import React, {Component} from 'react';
 import {AppRegistry, StyleSheet, Text, View, Dimensions,Image} from 'react-native';
-import imageSlide from '../../assets/imageslide.jpg'
-import imageSlide2 from '../../assets/imageslide2.jpg'
-import imageSlide3 from '../../assets/imageslide3.jpg'
-import imageSlide4 from '../../assets/imageslide4.jpg'
+import imageSlide from '../../assets/phoenix/Artboard-3.png'
+import imageSlide2 from '../../assets/phoenix/Artboard-2.png'
+import imageSlide3 from '../../assets/phoenix/BANNER-MASTERCONTENT.png'
+import imageSlide4 from '../../assets/phoenix/BANNER-MMA.png'
 
 import Swiper from 'react-native-swiper';
 const widthDimension = Dimensions.get('screen').width;
@@ -11,19 +11,21 @@ const heightDimension = Dimensions.get('screen').height;
 
 const styles = StyleSheet.create({
   container: {
-    paddingVertical: heightDimension * 0.015,
+    paddingVertical: heightDimension * 0.02,
     backgroundColor: 'white',
     paddingHorizontal: widthDimension * 0.03,
     width: '100%',
-    height: heightDimension * 0.3,
+    height: heightDimension * 0.24,
+    zIndex: 0
   },
   slide1: {
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#9DD6EB',
     width: '100%',
-    height: heightDimension * 0.26,
+    height: heightDimension * 0.2,
     borderRadius: 20,
+    resizeMode:'cover'
   },
   text: {
     color: '#fff',
@@ -120,7 +122,7 @@ const styles = StyleSheet.create({
   },
   dot: {
     width: 25,
-    height: 3,
+    height: 2,
     borderRadius: 4,
     backgroundColor: 'rgba(0,0,0,0.2)',
   },
@@ -215,10 +217,10 @@ export default class SliderHeader extends Component {
           dotColor="rgba(255,255,255,0.3)"
           dotStyle={styles.dot}
           activeDot={<View style={[styles.dot, styles.activeDot]} />}>
-          <Image source={imageSlide} style={styles.slide1} />
-                    <Image source={imageSlide2} style={styles.slide1} />
-          <Image source={imageSlide3} style={styles.slide1} />
-          <Image source={imageSlide4} style={styles.slide1} />
+          <Image source={imageSlide} style={styles.slide1} alt=""/>
+                    <Image source={imageSlide2} style={styles.slide1} alt=""/>
+          <Image source={imageSlide3} style={styles.slide1} alt=""/>
+          <Image source={imageSlide4} style={styles.slide1} alt=""/>
 
         </Swiper>
       </View>

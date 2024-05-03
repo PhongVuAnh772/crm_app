@@ -34,7 +34,6 @@ const fetchData = async (item: ListItemType) => {
     const response = await axios.get(`https://65a7b8eb94c2c5762da763fe.mockapi.io/today`);
     if (response.data) {
       // const updatedItem = { ...item, details: response.data[0].details };
-      console.log(response.data);
       return response.data
     }
     // item.details = data.details;
@@ -60,7 +59,6 @@ export const fetchDetailsOnExpand = async (item, dispatch) => {
     try {
       const response = await axios.get(`https://65a7b8eb94c2c5762da763fe.mockapi.io/today`);
       if (response.data) {
-        console.log(response.data);
         return response.data;
       }
     } catch (error) {

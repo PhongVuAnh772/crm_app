@@ -2,14 +2,17 @@ import { StyleSheet, Text, View,Image } from 'react-native'
 import React from 'react'
 import FontAwesome6 from 'react-native-vector-icons/FontAwesome6'
 import coinIcon from '../../assets/coins.png'
+import {useSelector} from 'react-redux'
 
 const PersonalHeader = () => {
+      const userData = useSelector(state => state.user.user)
+
   return (
     <View style={styles.container}>
         <View style={styles.coinContainer}>
             {/* <FontAwesome6 name="coins" size={16} color="black" /> */}
-            <Image source={coinIcon} style={styles.coinIconAssets}/>
-            <Text style={styles.coinText}>885</Text>
+            <Image source={coinIcon} style={styles.coinIconAssets} alt=""/>
+            <Text style={styles.coinText}>{userData ? userData.coin : 0}</Text>
         </View>
         {/* <View style={styles.infoContainer}></View> */}
     </View>

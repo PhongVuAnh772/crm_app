@@ -23,6 +23,8 @@ const HomeContentFirst = () => {
             <TextInput
               style={styles.inputSearching}
               onChangeText={onChangeNumber}
+                          placeholderTextColor="gray"
+
               value={number}
               placeholder="Nhập số điện thoại tại đây"
               keyboardType="numeric"
@@ -72,7 +74,8 @@ const styles = StyleSheet.create({
     width: '70%',
     borderRadius: 5,
     borderColor: 'gray',
-    fontSize: 17
+    fontSize: 17,
+    color:'black'
   },
   buttonSearch: {
     width: '28%',

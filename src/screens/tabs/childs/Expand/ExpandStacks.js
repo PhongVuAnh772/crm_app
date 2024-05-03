@@ -6,7 +6,7 @@ const ExpandStack = createStackNavigator();
 
 const ExpandStacks = () => {
   return (
-    <ExpandStack.Navigator screenOptions={{headerShown: false}}>
+    <ExpandStack.Navigator screenOptions={{headerShown: false}} initialRouteName="ExpandIndex">
       <ExpandStack.Screen
         name="ExpandIndex"
         component={ExpandIndex}

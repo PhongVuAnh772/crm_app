@@ -8,7 +8,7 @@ const PersonalHeader = () => {
     <View style={styles.container}>
         <View style={styles.coinContainer}>
             {/* <FontAwesome6 name="coins" size={16} color="black" /> */}
-            <Image source={coinIcon} style={styles.coinIconAssets}/>
+            <Image source={coinIcon} style={styles.coinIconAssets} alt=""/>
             <Text style={styles.coinText}>885</Text>
         </View>
         {/* <View style={styles.infoContainer}></View> */}

@@ -14,6 +14,9 @@ import HomeContentSecond from './main/content/HomeContentSecond';
 // import HomeContentThird from './main/content/HomeContentThird';
 import SliderHeader from './main/header/SliderHeader';
 import ProductListing from './main/content/ProductListing';
+import CategoryListing from './child/CategoryListing';
+import GreetingUser from './child/GreetingUser';
+import { colorConstants } from '../../../../../constants/colors/colors';
 
 const widthDimension = Dimensions.get('screen').width;
 const heightDimension = Dimensions.get('screen').height;
@@ -29,18 +32,22 @@ const Home = () => {
   }, []);
   return (
     <>
+            <StatusBar barStyle="dark-content" backgroundColor="white" />
+
       <View style={styles.wrapper}>
-        <StatusBar barStyle="dark-content" backgroundColor="white" />
 
         <HomeHeader />
         <ScrollView
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
           }
-          style={{flex: 1}}>
+          style={{flex: 1,zIndex:1}}>
           <SliderHeader />
+                    <GreetingUser/>
+
           {/* <HomeContentFirst /> */}
           {/* <HomeContentSecond /> */}
+          <CategoryListing />
           <ProductListing />
         </ScrollView>
       </View>
@@ -53,6 +60,6 @@ export default Home;
 const styles = StyleSheet.create({
   wrapper: {
     flex: 1,
-    backgroundColor: 'rgb(227, 228, 231)',
+    backgroundColor: 'white',
   },
 });

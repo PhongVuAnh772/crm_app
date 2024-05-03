@@ -1,4 +1,4 @@
-import React, {useRef} from 'react';
+import React, {useRef, useEffect, useState} from 'react';
 import {
   Animated,
   Dimensions,
@@ -9,6 +9,9 @@ import {
   TouchableOpacity,
   View,
   StatusBar,
+  Modal,
+  TextInput,
+  ActivityIndicator,
 } from 'react-native';
 import 'react-native-gesture-handler';
 import {NavigationContainer} from '@react-navigation/native';
@@ -28,14 +31,204 @@ import ExpandStacks from './childs/Expand/ExpandStacks';
 import FastImage from 'react-native-fast-image';
 import animatedPerson from '../assets/running-man-unscreen.gif';
 import CheckListStacks from './childs/CheckList/stacks/CheckListStacks';
+import AgentTreeStacks from './childs/AgentTree/stacks/AgentTreeStack';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import askingIcon from '../assets/question.png';
+import axios from 'axios';
+import {useSelector, useDispatch} from 'react-redux';
+import animatedSuccess from '../assets/success.gif';
+import {
+  CLEAR_USER_INTRODUCING_AGENT,
+  UPDATE_USER_INTRODUCING_AGENT,
+} from '../../../slices/users/userSlice';
+import { colorConstants } from '../../../constants/colors/colors';
 const Tab = createBottomTabNavigator();
 
-// Hiding Tab Names...
+const widthDimensions = Dimensions.get('screen').width;
 export default function App() {
-  // Animated Tab Indicator...
+  const dispatch = useDispatch();
+  const [successAction, setSuccessAction] = useState(false);
+  const [inputModal, setInputModal] = useState('');
+  const checkFirstTime = async () => {
+    try {
+      const value = await AsyncStorage.getItem('userDontCare');
+      const introducingAgent = await AsyncStorage.getItem('introducingAgent');
+      
+      if (value === null) {
+        setModalVisible(true);
+        await AsyncStorage.setItem('userDontCare', '0');
+      } else if (introducingAgent === null && value === '0') {
+        setModalVisible(true);
+        
+      } else {
+        await AsyncStorage.getItem('introducingAgent')
+          .then(introducingAgentString => {
+            if (introducingAgentString) {
+              setModalVisible(false);
+              const introducingAgentObject = JSON.parse(introducingAgentString);
+              dispatch(UPDATE_USER_INTRODUCING_AGENT(introducingAgentObject));
+            } else {
+              console.log('Không có dữ liệu đại lý giới thiệu');
+            }
+          })
+          .catch(error => {
+            console.error('Lỗi lấy dữ liệu đại lý giới thiệu:', error);
+          });
+      }
+    } catch (error) {
+      console.log('Error checking first time:', error);
+    }
+  };
+  useEffect(() => {
+    checkFirstTime();
+  }, []);
+  const [errorData, setErrorData] = useState(false);
+  const network = useSelector(state => state.network.ipv4);
+  const handleDontCare = async () => {
+    await AsyncStorage.setItem('userDontCare', '1');
+    setModalVisible(false);
+  };
+  const handleAccept = async () => {
+    setLoading(true);
+    const response = await axios.post(`${network}/searchMemberAPI`, null, {
+      params: {
+        phone: inputModal,
+      },
+    });
+    if (response.data && response.data[0]?.value !== '') {
+      setLoading(false);
+      setSuccessAction(true);
+      // setModalVisible(false);
+      await AsyncStorage.setItem(
+        'introducingAgent',
+        JSON.stringify(response.data),
+      );
+    } else {
+      setErrorData(true);
+      setLoading(false);
+    }
+  };
+  const [loading, setLoading] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
   const tabOffsetValue = useRef(new Animated.Value(0)).current;
   return (
     <>
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => {
+          setModalVisible(false);
+        }}>
+        <StatusBar barStyle="light-content" backgroundColor="rgba(0,0,0,0.5)" />
+
+        <View style={styles.centeredView}>
+          <View style={styles.modalView}>
+            <Image source={askingIcon} style={styles.modalIcon} alt=""/>
+            <Text
+              style={{
+                fontSize: 16,
+                fontWeight: 'bold',
+                color: 'black',
+                paddingTop: 20,
+                textAlign: 'center',
+              }}>
+              Hãy nhập số điện thoại đại lý đã giới thiệu bạn
+            </Text>
+            <Text style={{fontSize: 16, paddingTop: 20, textAlign: 'center',color:'gray'}}>
+              Nhập số điện thoại đại lý đã giới thiệu bạn để được phục vụ nhanh
+              chóng hơn
+            </Text>
+            <TextInput
+              style={[
+                styles.inputModal,
+                {borderColor: errorData ? 'red' : 'black'},
+              ]}
+              placeholderTextColor="gray"
+              placeholder="Nhập số điện thoại đại lý"
+              onChangeText={text => {
+                setInputModal(text);
+                setErrorData(false);
+              }}
+              keyboardType="numeric"
+            />
+            {errorData && (
+              <Text style={styles.errorText}>
+                Không tìm thấy đại lý, hãy thử lại
+              </Text>
+            )}
+
+            <View style={styles.buttonModalContainer}>
+              <TouchableOpacity
+                style={{
+                  width: '40%',
+                  paddingVertical: 15,
+                  backgroundColor: 'gray',
+                  borderRadius: 15,
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                }}
+                onPress={() => handleDontCare()}>
+                <Text
+                  style={{fontSize: 15, fontWeight: 'bold', color: 'white'}}>
+                  Đừng hỏi lại
+                </Text>
+              </TouchableOpacity>
+
+              {inputModal.length < 10 ? (
+                <View
+                  style={{
+                    width: '55%',
+                    paddingVertical: 15,
+                    backgroundColor: 'gray',
+                    borderRadius: 15,
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                  }}>
+                  <Text
+                    style={{fontSize: 16, fontWeight: 'bold', color: 'white'}}>
+                    Đồng ý
+                  </Text>
+                </View>
+              ) : (
+                <TouchableOpacity
+                  style={{
+                    width: '55%',
+                    paddingVertical: 15,
+                    backgroundColor: 'rgb(255, 158, 185)',
+                    borderRadius: 15,
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                  }}
+                  onPress={() => handleAccept()}>
+                  {loading ? (
+                    <FastImage
+                      style={{width: 20, height: 20}}
+                      source={animatedPerson}
+                      resizeMode={FastImage.resizeMode.contain}
+                    />
+                  ) : successAction ? (
+                    <FastImage
+                      style={{width: 20, height: 20}}
+                      source={animatedSuccess}
+                      resizeMode={FastImage.resizeMode.contain}
+                    />
+                  ) : (
+                    <Text
+                      style={{
+                        fontSize: 16,
+                        fontWeight: 'bold',
+                        color: 'white',
+                      }}>
+                      Đồng ý
+                    </Text>
+                  )}
+                </TouchableOpacity>
+              )}
+            </View>
+          </View>
+        </View>
+      </Modal>
       <Tab.Navigator
         screenOptions={({route}) => ({
           tabBarShowLabel: false,
@@ -60,7 +253,7 @@ export default function App() {
             bottom: 0,
             right: 0,
             left: 0,
-            backgroundColor: 'white',
+            backgroundColor: 'rgba(255, 255, 255,0.95)',
             borderTopColor: 'transparent',
             height: 55,
           },
@@ -87,13 +280,11 @@ export default function App() {
                 <FontAwesome5
                   name="home"
                   size={23}
-                  color={
-                    focused ? 'rgb(50, 111, 226)' : 'black'
-                  }></FontAwesome5>
+                  color={focused ? colorConstants.primaryColor : 'black'}></FontAwesome5>
                 {focused && (
                   <Text
                     style={{
-                      color: focused ? 'rgb(50, 111, 226)' : 'black',
+                      color: focused ? colorConstants.primaryColor : 'black',
                       fontSize: 10,
                       marginTop: 5,
                     }}>
@@ -127,13 +318,11 @@ export default function App() {
                 <FontAwesome5
                   name="user-alt"
                   size={23}
-                  color={
-                    focused ? 'rgb(50, 111, 226)' : 'black'
-                  }></FontAwesome5>
+                  color={focused ? colorConstants.primaryColor : 'black'}></FontAwesome5>
                 {focused && (
                   <Text
                     style={{
-                      color: focused ? 'rgb(50, 111, 226)' : 'black',
+                      color: focused ? colorConstants.primaryColor : 'black',
                       fontSize: 10,
                       marginTop: 5,
                     }}>
@@ -167,7 +356,7 @@ export default function App() {
                 style={{
                   width: 60,
                   height: 60,
-                  backgroundColor: 'rgb(50, 111, 226)',
+                  backgroundColor: colorConstants.primaryColor,
                   borderRadius: 30,
                   justifyContent: 'center',
                   alignItems: 'center',
@@ -193,8 +382,8 @@ export default function App() {
           })}></Tab.Screen>
 
         <Tab.Screen
-          name={'AgentTree'}
-          component={AgentTree}
+          name={'AgentTreeStacks'}
+          component={AgentTreeStacks}
           options={{
             tabBarIcon: ({focused}) => (
               <View
@@ -206,14 +395,12 @@ export default function App() {
                 <FontAwesome6
                   name="folder-tree"
                   size={23}
-                  color={
-                    focused ? 'rgb(50, 111, 226)' : 'black'
-                  }></FontAwesome6>
+                  color={focused ? colorConstants.primaryColor : 'black'}></FontAwesome6>
 
                 {focused && (
                   <Text
                     style={{
-                      color: focused ? 'rgb(50, 111, 226)' : 'black',
+                      color: focused ? colorConstants.primaryColor : 'black',
                       fontSize: 10,
                       marginTop: 5,
                     }}>
@@ -248,12 +435,12 @@ export default function App() {
                   name="menu"
                   size={25}
                   color={
-                    focused ? 'rgb(50, 111, 226)' : 'black'
+                    focused ? colorConstants.primaryColor : 'black'
                   }></MaterialIcons>
                 {focused && (
                   <Text
                     style={{
-                      color: focused ? 'rgb(50, 111, 226)' : 'black',
+                      color: focused ? colorConstants.primaryColor : 'black',
                       fontSize: 10,
                       marginTop: 5,
                     }}>
@@ -273,12 +460,11 @@ export default function App() {
             },
           })}></Tab.Screen>
       </Tab.Navigator>
-
       <Animated.View
         style={{
           width: getWidth() - 20,
           height: 3,
-          backgroundColor: 'rgb(50, 111, 226)',
+          backgroundColor: colorConstants.primaryColor,
           position: 'absolute',
           bottom: 55,
           left: 20,
@@ -297,10 +483,56 @@ function getWidth() {
 }
 
 const styles = StyleSheet.create({
+  buttonModalContainer: {
+    width: '100%',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  modalIcon: {
+    height: 100,
+    width: 100,
+  },
+  inputModal: {
+    height: 40,
+    marginVertical: 20,
+    borderWidth: 0.5,
+    width: '100%',
+    color: 'black',
+    paddingHorizontal: 10,
+    borderColor: 'black',
+    borderRadius: 5,
+  },
+  errorText: {
+    color: 'red',
+    paddingBottom: 15,
+  },
   container: {
     flex: 1,
     backgroundColor: '#fff',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  centeredView: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+  },
+  modalView: {
+    margin: 20,
+    backgroundColor: 'white',
+    borderRadius: 20,
+    width: widthDimensions * 0.9,
+    paddingHorizontal: 20,
+    paddingVertical: 20,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
   },
 });

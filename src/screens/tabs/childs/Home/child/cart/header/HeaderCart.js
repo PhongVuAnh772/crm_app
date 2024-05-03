@@ -1,4 +1,4 @@
-import {StyleSheet, Text, View, StatusBar,Dimensions,TouchableOpacity} from 'react-native';
+import {StyleSheet, Text, View, StatusBar,Dimensions,TouchableOpacity,Modal} from 'react-native';
 import React from 'react';
 import FontAwesome6 from 'react-native-vector-icons/FontAwesome6';
 import {useNavigation} from '@react-navigation/native';
@@ -8,15 +8,16 @@ const heightDimension = Dimensions.get('screen').height;
 const widthDimension = Dimensions.get('screen').width;
 
 const HeaderCart = () => {
+  
     const navigation = useNavigation();
   return (
     <View style={styles.container}>
       <TouchableOpacity style={styles.iconCartContainer} onPress={() => navigation.goBack()}>
-        <FontAwesome6 name="chevron-left" size={18} color="rgb(42, 112, 234)" />
+        <FontAwesome6 name="chevron-left" size={18} color="rgb(50, 111, 226)" />
       </TouchableOpacity>
       <Text style={styles.titleHeader}>Giỏ hàng</Text>
       <View style={styles.iconCartContainer}>
-        <FontAwesome6 name="trash" size={18} color="rgb(42, 112, 234)" />
+        <FontAwesome6 name="trash" size={18} color="rgb(50, 111, 226)" />
       </View>
 
     </View>

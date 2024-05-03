@@ -6,15 +6,19 @@ import {
   Dimensions,
   TouchableWithoutFeedback,
   View,
+  Text
 } from 'react-native';
 import React, {useEffect, useState} from 'react';
 import {getData, ListItemType} from '../../list-item/GetData';
 import {ListItem} from '../../list-item/ListItem';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons'
+import { Agenda } from 'react-native-calendars';
+
 const heightDimensions = Dimensions.get('screen').height;
 const widthDimensions = Dimensions.get('screen').width;
 
 export default function AllJobs() {
+  
   const data = getData();
   const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>(
     {},
@@ -23,7 +27,6 @@ export default function AllJobs() {
     const initialExpandedItems = data.reduce((acc, item) => {
       if (item.title === 'Công việc hôm nay') {
         acc[item.title] = true;
-        console.log(item.title);
       } else {
         acc[item.title] = false;
       }
@@ -35,20 +38,54 @@ export default function AllJobs() {
     const expanded = expandedItems[item.title];
     return <ListItem item={item} initialExpanded={expanded} />;
   };
+  const [items, setItems] = useState<any>({});
 
+  const loadItems = (day:any) => {
+    const dayItems = items[day.dateString] || [];
+
+    // Load your events or appointments for the given day here
+    // For example:
+    const events = [
+      { name: 'Làm việc', time: '10:00 AM' },
+      { name: 'Học ', time: '12:30 PM' },
+      { name: 'Code', time: '2:00 PM' },
+    ];
+
+    // Update the state with the events for the given day
+    setItems((prevItems:any) => ({
+      ...prevItems,
+      [day.dateString]: [...dayItems, ...events],
+    }));
+  };
+
+  const renderItemCalendar = (item:any) => (
+    <View style={styles.item}>
+      <Text style={styles.itemText}>{item.time} - {item.name}</Text>
+    </View>
+  );
   return (
     <SafeAreaView style={styles.container}>
-      <FlatList
+      {/* <FlatList
         data={data}
         keyExtractor={(item, index) => `${item.title}${index}`}
         renderItem={renderItem}
       />
-      {/* <View style={styles.buttonContainer}> */}
         <TouchableWithoutFeedback
           onPress={() => console.log('red')}>
             <View style={styles.buttonSpecified}><MaterialIcons name="add" size={25} color="white"/></View>
-          </TouchableWithoutFeedback>
-      {/* </View> */}
+          </TouchableWithoutFeedback> */}
+          <View style={styles.container}>
+      <Agenda
+        items={items}
+        loadItemsForMonth={loadItems}
+        renderItem={renderItemCalendar}
+        theme={{
+          agendaDayTextColor: 'black',
+          agendaDayNumColor: 'green',
+          agendaTodayColor: 'red',
+        }}
+      />
+    </View>
     </SafeAreaView>
   );
 }
@@ -76,5 +113,18 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 80,
     right: 15
-  }
+  },
+  containerCalendar: {
+    flex: 1,
+  },
+  item: {
+    backgroundColor: 'white',
+    padding: 10,
+    marginRight: 10,
+    marginTop: 10,
+    borderRadius: 5,
+  },
+  itemText: {
+    fontSize: 16,
+  },
 });

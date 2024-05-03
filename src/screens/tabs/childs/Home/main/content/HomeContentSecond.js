@@ -5,6 +5,9 @@ import AntDesign from 'react-native-vector-icons/AntDesign';
 
 const widthDimension = Dimensions.get('screen').width;
 const heightDimension = Dimensions.get('screen').height;
+
+const { width } = Dimensions.get('window');
+const isSmallScreen = width < 375; 
 const HomeContentSecond = () => {
   return (
     <View style={styles.container}>
@@ -19,7 +22,7 @@ const HomeContentSecond = () => {
         <View
           style={[styles.overviewChild, {backgroundColor: 'rgb(95, 61, 236)'}]}>
           <View style={styles.overviewTitleContainer}>
-            <Text style={styles.overviewTitle}>Đơn hàng</Text>
+            <Text style={styles.overviewTitle}>Doanh số</Text>
             <Entypo name="chevron-right" size={20} color="white" />
           </View>
           <View style={styles.overviewTitleContainer}>
@@ -36,7 +39,7 @@ const HomeContentSecond = () => {
             {backgroundColor: 'rgb(72, 101, 237)', marginLeft: 10},
           ]}>
           <View style={styles.overviewTitleContainer}>
-            <Text style={styles.overviewTitle}>Đơn hàng</Text>
+            <Text style={styles.overviewTitle}>Lượt xem tổng</Text>
             <Entypo name="chevron-right" size={20} color="white" />
           </View>
           <View style={styles.overviewTitleContainer}>
@@ -55,7 +58,7 @@ const HomeContentSecond = () => {
             {backgroundColor: 'rgb(16, 169, 244)'},
           ]}>
           <View style={styles.overviewTitleContainer}>
-            <Text style={styles.overviewTitle}>Đơn hàng</Text>
+            <Text style={styles.overviewTitle}>Sản phẩm</Text>
             <Entypo name="chevron-right" size={20} color="white" />
           </View>
           <View style={styles.overviewTitleContainer}>
@@ -74,7 +77,7 @@ const HomeContentSecond = () => {
             {backgroundColor: 'rgb(239, 123, 66)', marginLeft: 10},
           ]}>
           <View style={styles.overviewTitleContainer}>
-            <Text style={styles.overviewTitle}>Đơn hàng</Text>
+            <Text style={styles.overviewTitle}>Đánh giá</Text>
             <Entypo name="chevron-right" size={20} color="white" />
           </View>
           <View style={styles.overviewTitleContainer}>
@@ -109,18 +112,18 @@ const styles = StyleSheet.create({
   titleFirstContainer: {},
   titleSecond: {
     color: 'rgb(50, 111, 226)',
-    fontSize: 16,
+    fontSize: isSmallScreen ? 13 : 16,
     marginTop: 5,
     fontWeight: 'bold',
   },
   titleFirst: {
     color: 'black',
     fontWeight: '500',
-    fontSize: 20,
+    fontSize: isSmallScreen ? 15 : 20,
   },
   titleSecondNow: {
     color: 'rgb(50, 111, 226)',
-    fontSize: 16,
+    fontSize: isSmallScreen ? 13 : 16,
     marginTop: 5,
     fontWeight: '500',
   },
@@ -145,12 +148,12 @@ const styles = StyleSheet.create({
   overviewTitle: {
     color: 'white',
     fontWeight: 'bold',
-    fontSize: 18,
+    fontSize: isSmallScreen ? 15 : 18,
   },
   overviewNumber: {
     color: 'white',
     fontWeight: 'bold',
-    fontSize: 30,
+    fontSize: isSmallScreen ? 20 : 30,
   },
   overviewExtraContainer: {
     paddingHorizontal: 5,
@@ -164,5 +167,6 @@ const styles = StyleSheet.create({
     color: 'rgb(40, 162, 114)',
     paddingLeft: 7,
     fontWeight: 'bold',
+    fontSize: isSmallScreen ? 10 : 15,
   },
 });

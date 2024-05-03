@@ -23,7 +23,6 @@ export default function AllJobs() {
     const initialExpandedItems = data.reduce((acc, item) => {
       if (item.title === 'Công việc hôm nay') {
         acc[item.title] = true;
-        console.log(item.title);
       } else {
         acc[item.title] = false;
       }
@@ -31,6 +30,8 @@ export default function AllJobs() {
     }, {} as Record<string, boolean>);
     setExpandedItems(initialExpandedItems);
   }, []);
+ 
+  
   const renderItem = ({item}: ListRenderItemInfo<ListItemType>) => {
     const expanded = expandedItems[item.title];
     return <ListItem item={item} initialExpanded={expanded} />;

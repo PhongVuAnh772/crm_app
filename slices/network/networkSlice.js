@@ -1,7 +1,8 @@
 import { createSlice } from '@reduxjs/toolkit'
 
 const initialState = {
-  ipv4: 'https://crm.zikii.vn/apis',
+  ipv4: 'https://crm.phoenixcamp.vn/apis',
+  formWeb: 'https://crm.zikii.vn'
 }
 
 export const networkSlice = createSlice({

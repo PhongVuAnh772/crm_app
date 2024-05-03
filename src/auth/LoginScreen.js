@@ -12,25 +12,33 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import React, {useState} from 'react';
-import zikiProduct from './assets/zikii-product.png';
-import zikiiLogoWhite from './assets/logozikii_trang.png';
+import zikiProduct from './image.png';
+import zikiiLogoWhite from '../../constants/logo/phoenix-logo-other.png';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import axios from 'axios';
 import {useSelector, useDispatch} from 'react-redux';
 import {UPDATE_USER_DATA} from '../../slices/users/userSlice';
 import {useNavigation} from '@react-navigation/native';
-import { UPDATE_LOGIN_REQUIRED } from '../../slices/auth/authSlice';
+import {
+  UPDATE_LOGIN_REQUIRED,
+  UPDATE_TOKEN_REQUIRED,
+} from '../../slices/auth/authSlice';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { colorConstants } from '../../constants/colors/colors';
+
+
 const widthDimension = Dimensions.get('screen').width;
 const heightDimension = Dimensions.get('screen').height;
 
 const LoginScreen = () => {
+
   const navigation = useNavigation();
 
   const dispatch = useDispatch();
   const network = useSelector(state => state.network.ipv4);
   const [isFocusedUsername, setIsFocusedUsername] = useState(false);
   const [isFocusedPassword, setIsFocusedPassword] = useState(false);
-  const [inputPhone, setInputPhone] = useState('0816560000');
+  const [inputPhone, setInputPhone] = useState('0366886886');
   const [inputPassword, setInputPassword] = useState('123456');
   const [errMessage, setErrorMessage] = useState('');
   const [loading, setLoading] = useState(false);
@@ -42,7 +50,17 @@ const LoginScreen = () => {
     });
     if (response.data && response.data.code === 0) {
       dispatch(UPDATE_USER_DATA(response.data.info_member));
-            dispatch(UPDATE_LOGIN_REQUIRED());
+      dispatch(UPDATE_LOGIN_REQUIRED());
+
+      dispatch(UPDATE_TOKEN_REQUIRED(response.data.info_member.token));
+      await AsyncStorage.setItem(
+        'user_data',
+        JSON.stringify(response.data.info_member),
+      );
+      await AsyncStorage.setItem(
+        'token',
+        JSON.stringify(response.data.info_member.token),
+      );
 
       setLoading(false);
       navigation.reset({
@@ -58,13 +76,13 @@ const LoginScreen = () => {
   };
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="rgb(5, 106, 255)" />
+      <StatusBar barStyle="light-content" backgroundColor={colorConstants.primaryColor} />
       <Image
         source={zikiProduct}
         resizeMode="contain"
-        style={styles.imageBackground}></Image>
+        style={styles.imageBackground} alt=""></Image>
       <View style={styles.containerBackground}>
-        <Image source={zikiiLogoWhite} style={styles.logoAssets} />
+        <Image source={zikiiLogoWhite} style={styles.logoAssets} alt=""/>
         <View style={styles.containerLogoHelp}>
           <MaterialIcons name="support-agent" size={20} color="black" />
         </View>
@@ -84,6 +102,7 @@ const LoginScreen = () => {
             style={[styles.input, isFocusedUsername && styles.focusedInput]}
             onFocus={() => setIsFocusedUsername(true)}
             onBlur={() => setIsFocusedUsername(false)}
+            placeholderTextColor="gray"
             maxLength={12}
             keyboardType="numeric"
             onChangeText={text => {
@@ -105,6 +124,7 @@ const LoginScreen = () => {
           <TextInput
             style={[styles.input]}
             secureTextEntry={true}
+            placeholderTextColor="gray"
             maxLength={50}
             onFocus={() => setIsFocusedPassword(true)}
             onBlur={() => setIsFocusedPassword(false)}
@@ -115,7 +135,8 @@ const LoginScreen = () => {
             value={inputPassword}
           />
         </View>
-        <TouchableOpacity onPress={() => navigation.navigate('ForgetPasswordIndex')}>
+        <TouchableOpacity
+          onPress={() => navigation.navigate('ForgetPasswordIndex')}>
           <Text style={styles.loginButtonForgotText}>Quên mật khẩu ?</Text>
         </TouchableOpacity>
         {errMessage && (
@@ -147,9 +168,9 @@ export default LoginScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'rgb(5, 106, 255)',
+    backgroundColor: colorConstants.primaryColor,
     position: 'relative',
-    alignItems: 'center',
+    // alignItems: 'center',
   },
   loginContainer: {
     backgroundColor: 'white',
@@ -178,19 +199,20 @@ const styles = StyleSheet.create({
   input: {
     width: '100%',
     fontSize: 18,
+    color: 'black',
   },
   labelText: {
     color: 'rgb(114, 119, 127)',
     fontSize: 17,
   },
   focusedText: {
-    color: 'rgb(5, 106, 255)', // Màu văn bản khi focus
+    color: colorConstants.primaryColor, // Màu văn bản khi focus
   },
   focusedInput: {
-    borderColor: 'rgb(5, 106, 255)', // Màu viền khi focus
+    borderColor: colorConstants.primaryColor, // Màu viền khi focus
   },
   loginButton: {
-    backgroundColor: 'rgb(5, 106, 255)',
+    backgroundColor: colorConstants.primaryColor,
     marginTop: heightDimension * 0.03,
     paddingVertical: heightDimension * 0.02,
     borderRadius: 10,
@@ -203,18 +225,18 @@ const styles = StyleSheet.create({
     color: 'rgb(255, 255, 255)',
   },
   loginButtonForgotText: {
-    color: 'rgb(5, 106, 255)',
+    color: colorConstants.primaryColor,
     marginTop: heightDimension * 0.03,
     fontSize: 16,
   },
   imageBackground: {
-    justifyContent: 'center',
-    width: '80%',
-    height: '60%',
+    width: '100%',
+    height: '63%',
+    borderRadius: 10
   },
   logoAssets: {
-    width: 100,
-    height: 100,
+    width: 50,
+    height: 50,
     resizeMode: 'contain',
   },
   containerBackground: {

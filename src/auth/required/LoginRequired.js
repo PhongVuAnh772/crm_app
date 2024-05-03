@@ -5,13 +5,14 @@ import { useNavigation } from '@react-navigation/native';
 
 const widthDimension = Dimensions.get('screen').width;
 const heightDimension = Dimensions.get('screen').height;
-
+const {width} = Dimensions.get('window');
+const isSmallScreen = width < 375;
 const LoginRequired = () => {
       const navigation = useNavigation();
 
   return (
     <View style={styles.container}>
-        <Image source={stickerLogin} style={styles.stickerLoginAssets}/>
+        <Image source={stickerLogin} style={styles.stickerLoginAssets} alt=""/>
         <Text style={styles.textLoginRequired}>Bạn không có quyền truy cập, hãy đăng nhập</Text>
         <TouchableWithoutFeedback onPress={() => navigation.navigate('Login')}>
             <View style={styles.buttonContainer}>
@@ -34,18 +35,18 @@ const styles = StyleSheet.create({
         height: heightDimension
     },
     stickerLoginAssets: {
-        width: 200,
-        height: 200
+        width: isSmallScreen ? 170 : 200,
+        height: isSmallScreen ? 170 : 200
     },
     textLoginRequired: {
-        fontSize: 20,
+        fontSize: isSmallScreen ? 15: 20,
         fontWeight: 'bold',
         color:'black',
         paddingTop: heightDimension * 0.03
     },
     buttonContainer: {
         width: '60%',
-        height: 50,
+        height: isSmallScreen ? 40 : 50,
         backgroundColor:'rgb(50, 111, 226)',
                 marginTop: heightDimension * 0.05,
                 alignItems:'center',
@@ -54,7 +55,7 @@ const styles = StyleSheet.create({
 
     },
     buttonLoginText: {
-        fontSize: 20,
+        fontSize: isSmallScreen ? 15: 20,
         color:'white',
         fontWeight: 'bold',
     }

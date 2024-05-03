@@ -5,7 +5,7 @@ const CheckListStack = createStackNavigator();
 
 const CheckListStacks = () => {
   return (
-    <CheckListStack.Navigator screenOptions={{headerShown: false}}>
+    <CheckListStack.Navigator screenOptions={{headerShown: false}} initialRouteName="CheckListIndex">
       <CheckListStack.Screen
         name="CheckListIndex"
         component={CheckListIndex}

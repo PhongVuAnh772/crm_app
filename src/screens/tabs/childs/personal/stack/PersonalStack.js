@@ -7,7 +7,7 @@ const PersonalStack = createStackNavigator();
 
 const PersonalStacks = () => {
   return (
-    <PersonalStack.Navigator screenOptions={{headerShown: false}}>
+    <PersonalStack.Navigator screenOptions={{headerShown: false}} initialRouteName="PersonalIndex">
       <PersonalStack.Screen name="PersonalIndex" component={PersonalPage} />
 
       {/* <PersonalStack.Screen
