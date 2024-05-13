@@ -1,362 +1,571 @@
-import {
-  StyleSheet,
-  Text,
-  View,
-  Dimensions,
-  StatusBar,
-  TouchableOpacity,
-  Modal,
-  ScrollView,
-  TextInput,
-  ActivityIndicator,
-} from 'react-native';
 import React, {useState, useEffect} from 'react';
-import FontAwesome6 from 'react-native-vector-icons/FontAwesome6';
+import {
+  View,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+  Image,
+  ToastAndroid,
+} from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {useNavigation} from '@react-navigation/native';
-import CartItem from './cart-item/CartItem';
-import axios from 'axios';
-import {useSelector, useDispatch} from 'react-redux';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 
-const heightDimension = Dimensions.get('screen').height;
-const widthDimension = Dimensions.get('screen').width;
+const COLOURS = {
+  white: '#ffffff',
+  black: '#000000',
+  green: '#00AC76',
+  red: '#C04345',
+  blue: '#0043F9',
+  backgroundLight: '#F0F0F3',
+  backgroundMedium: '#B9B9B9',
+  backgroundDark: '#777777',
+};
 
-const {width} = Dimensions.get('window');
-const isSmallScreen = width < 375;
+export const Items = [
+  {
+    id: 1,
+    category: 'product',
+    productName: 'MI Super Bass Bluetooth Wireless Headphones',
+    productPrice: 1799,
+    description:
+      'Up to 20 hours battery life | Super powerful Bass | 40mm dynamic driver | Pressure less ear muffs | Bluetooth 5.0 | Voice control',
+    isOff: true,
+    offPercentage: 10,
+    productImage: require('./cart-item/ic_launcher (1).png'),
+    isAvailable: true,
+    productImageList: [
+      require('./cart-item/ic_launcher (1).png'),
+      require('./cart-item/ic_launcher (1).png'),
+      require('./cart-item/ic_launcher (1).png'),
+    ],
+  },
+  {
+    id: 2,
+    category: 'product',
+    productName: 'boAt Rockerz 450 Bluetooth Headphone',
+    productPrice: 1499,
+    description:
+      'boAt Rockerz 450 M is an on-ear wireless headset that has been ergonomically designed to meet the needs of music lovers.',
+    isOff: false,
+    productImage: require('./cart-item/ic_launcher (1).png'),
+    isAvailable: true,
+    productImageList: [
+      require('./cart-item/ic_launcher (1).png'),
+      require('./cart-item/ic_launcher (1).png'),
+      require('./cart-item/ic_launcher (1).png'),
+    ],
+  },
+  {
+    id: 3,
+    category: 'accessory',
+    productName: 'boAt Airdopes 441',
+    productPrice: 1999,
+    description:
+      'Bluetooth: It has Bluetooth v5.0 with a range of 10m and is compatible with Android & iOS',
+    isOff: true,
+    offPercentage: 18,
+    productImage: require('./cart-item/ic_launcher (1).png'),
+    isAvailable: true,
+    productImageList: [
+      require('./cart-item/ic_launcher (1).png'),
+      require('./cart-item/ic_launcher (1).png'),
+      require('./cart-item/ic_launcher (1).png'),
+    ],
+  },
+ 
+];
 
-const ImportingGoods = () => {
-  const network = useSelector(state => state.network.ipv4);
-  const token = useSelector(state => state.auth.token);
-  // const userData = useSelector(state => state/
-  const navigation = useNavigation();
-  const [modalVisible, setModalVisible] = useState(false);
-  const calculateTotalPrice = () => {
-    let totalPrice = 0;
-    cart.forEach(item => {
-      totalPrice += item.price * item.quantityProduct;
-    });
-    return totalPrice;
-  };
-  const clearCart = async () => {
-    try {
-      await AsyncStorage.removeItem('@cart');
-      setCart([]);
-      setModalVisible(false);
-    } catch (error) {
-      console.log('Lỗi khi xóa sản phẩm trong kho:', error);
-    }
-  };
-  const [errVoucher, setErrVoucher] = useState(false);
-  const [cart, setCart] = useState([]);
-  const formatPrice = price => {
-    const formattedPrice = price
-      .toString()
-      .replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+const MyCart = ({navigation}) => {
+  const [product, setProduct] = useState();
+  const [total, setTotal] = useState(null);
 
-    return `${formattedPrice} đ`;
-  };
-  const handlePaying = async () => {
-    setLoading(true);
-  };
   useEffect(() => {
-    const loadCartData = async () => {
-      try {
-        const cartData = await AsyncStorage.getItem('@cart');
-        if (cartData !== null) {
-          setCart(JSON.parse(cartData));
-        } else {
-          setCart([]);
+    const unsubscribe = navigation.addListener('focus', () => {
+      getDataFromDB();
+    });
+
+    return unsubscribe;
+  }, [navigation]);
+
+  //get data from local DB by ID
+  const getDataFromDB = async () => {
+    let items = await AsyncStorage.getItem('cartItems');
+    items = JSON.parse(items);
+    let productData = [];
+    if (items) {
+      Items.forEach(data => {
+        if (items.includes(data.id)) {
+          productData.push(data);
+          return;
         }
-      } catch (error) {
-        console.error('Error loading cart data:', error);
-      }
-    };
-
-    loadCartData();
-  }, []);
-  const [codeVoucherInput, setCodeVoucherInput] = useState('');
-  const [successVoucher, setSuccessVoucher] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const handleVoucher = async () => {
-    setLoading(true);
-    const response = await axios.post(
-      `${network}/searchDiscountCodeReservedAPI`,
-      {
-        code: codeVoucherInput,
-      },
-    );
-    if (response.data && response.data.code === 0) {
-      setLoading(false);
-      setSuccessVoucher(true);
+      });
+      setProduct(productData);
+      getTotal(productData);
     } else {
-      setLoading(false);
+      setProduct(false);
+      getTotal(false);
+    }
+  };
 
-      setErrVoucher(true);
+  //get total price of all items in the cart
+  const getTotal = productData => {
+    let total = 0;
+    for (let index = 0; index < productData.length; index++) {
+      let productPrice = productData[index].productPrice;
+      total = total + productPrice;
+    }
+    setTotal(total);
+  };
+
+  //remove data from Cart
+
+  const removeItemFromCart = async id => {
+    let itemArray = await AsyncStorage.getItem('cartItems');
+    itemArray = JSON.parse(itemArray);
+    if (itemArray) {
+      let array = itemArray;
+      for (let index = 0; index < array.length; index++) {
+        if (array[index] == id) {
+          array.splice(index, 1);
+        }
+
+        await AsyncStorage.setItem('cartItems', JSON.stringify(array));
+        getDataFromDB();
+      }
     }
   };
-  const addToCart = async item => {
+
+  //checkout
+
+  const checkOut = async () => {
     try {
-      const updatedCart = [...cart, item];
-      setCart(updatedCart);
-      await AsyncStorage.setItem('@cart', JSON.stringify(updatedCart));
+      await AsyncStorage.removeItem('cartItems');
     } catch (error) {
-      console.error('Error adding item to cart:', error);
+      return error;
     }
+
+    ToastAndroid.show('Items will be Deliverd SOON!', ToastAndroid.SHORT);
+
+    navigation.navigate('Home');
   };
-  const removeFromCart = async itemIndex => {
-    try {
-      const updatedCart = [...cart];
-      updatedCart.splice(itemIndex, 1);
-      setCart(updatedCart);
-      await AsyncStorage.setItem('@cart', JSON.stringify(updatedCart));
-    } catch (error) {
-      console.error('Error removing item from cart:', error);
-    }
-  };
-  return (
-    <>
-      <Modal
-        animationType="fade"
-        transparent={true}
-        visible={modalVisible}
-        onRequestClose={() => {
-          setModalVisible(!modalVisible);
+
+  const renderProducts = (data, index) => {
+    return (
+      <TouchableOpacity
+        key={data.key}
+        onPress={() => navigation.navigate('ProductInfo', {productID: data.id})}
+        style={{
+          width: '100%',
+          height: 100,
+          marginVertical: 6,
+          flexDirection: 'row',
+          alignItems: 'center',
         }}>
-        <StatusBar barStyle="dark-content" backgroundColor="rgba(0,0,0,0.4)" />
-
-        <View style={styles.centeredViewModal}>
-          <View style={styles.modalView}>
-            <Text style={styles.modalText}>
-              Bạn có muốn xóa sản phẩm trong kho không ?
-            </Text>
-            <View style={styles.modalButtonContainer}>
-              <TouchableOpacity
-                style={[styles.buttonModal, {backgroundColor: 'gray'}]}
-                onPress={() => setModalVisible(false)}>
-                <Text style={styles.buttonModalText}>Không</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[
-                  styles.buttonModal,
-                  {marginLeft: 20, backgroundColor: 'rgb(37, 41, 109)'},
-                ]}
-                onPress={() => clearCart()}>
-                <Text style={styles.buttonModalText}>Có</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
+        <View
+          style={{
+            width: '30%',
+            height: 100,
+            padding: 14,
+            justifyContent: 'center',
+            alignItems: 'center',
+            backgroundColor: COLOURS.backgroundLight,
+            borderRadius: 10,
+            marginRight: 22,
+          }}>
+          <Image
+            source={data.productImage}
+            style={{
+              width: '100%',
+              height: '100%',
+              resizeMode: 'contain',
+            }}
+          />
         </View>
-      </Modal>
-      <View style={styles.container}>
-        <StatusBar barStyle="dark-content" backgroundColor="white" />
-
-        {/* <HeaderCart />
-         */}
-        <View style={styles.containerHeader}>
-          <TouchableOpacity
-            style={styles.iconCartContainer}
-            onPress={() => navigation.goBack()}>
-            <FontAwesome6
-              name="chevron-left"
-              size={isSmallScreen ? 15 : 18}
-              color="rgb(37, 41, 109)"
-            />
-          </TouchableOpacity>
-          <Text style={styles.titleHeader}>Tạo đơn hàng</Text>
-          <TouchableOpacity
-            style={styles.iconCartContainer}
-            onPress={() => setModalVisible(true)}>
-            <FontAwesome6
-              name="trash"
-              size={isSmallScreen ? 15 : 18}
-              color="rgb(37, 41, 109)"
-            />
-          </TouchableOpacity>
-        </View>
-        <ScrollView
-          style={styles.container}
-          showsVerticalScrollIndicator={false}>
-          {cart.length > 0 ? (
-            cart.map((item, index) => <CartItem item={item} key={index} />)
-          ) : (
-            <></>
-          )}
-        </ScrollView>
-      </View>
-      <View style={styles.priceAllContainer}>
-        
-        <View style={styles.priceContainer}>
-          <View style={{width: '50%'}}>
-            <Text style={styles.priceTitle}>Tổng tiền</Text>
-            <Text style={styles.priceSpecified}>
-              {formatPrice(calculateTotalPrice())}
+        <View
+          style={{
+            flex: 1,
+            height: '100%',
+            justifyContent: 'space-around',
+          }}>
+          <View style={{}}>
+            <Text
+              style={{
+                fontSize: 14,
+                maxWidth: '100%',
+                color: COLOURS.black,
+                fontWeight: '600',
+                letterSpacing: 0.5,
+              }}>
+              {data.productName}
             </Text>
-            <Text style={{fontSize: 13,color:'black'}}>
-              Chiết khấu : <Text style={{fontWeight: 'bold'}}>0 %</Text>
-            </Text>
-          </View>
-          <TouchableOpacity
-            onPress={() => handlePaying()}
-            style={{width: '50%'}}>
             <View
-              style={[
-                styles.buttonContainer,
-                {width: loading && 180, height: loading && 70},
-              ]}>
-              {loading ? (
-                <ActivityIndicator size="small" color="white" />
-              ) : (
-                <>
-                  <Text style={styles.buttonText}>Thanh toán</Text>
-                  <View style={styles.iconButtonContainer}>
-                    <FontAwesome6
-                      name="cart-arrow-down"
-                      size={15}
-                      color="rgb(37, 41, 109)"
-                    />
-                  </View>
-                </>
-              )}
+              style={{
+                marginTop: 4,
+                flexDirection: 'row',
+                alignItems: 'center',
+                opacity: 0.6,
+              }}>
+              <Text
+                style={{
+                  fontSize: 14,
+                  fontWeight: '400',
+                  maxWidth: '85%',
+                  marginRight: 4,
+                }}>
+                &#8377;{data.productPrice}
+              </Text>
+              <Text>
+                (~&#8377;
+                {data.productPrice + data.productPrice / 20})
+              </Text>
             </View>
-          </TouchableOpacity>
+          </View>
+          <View
+            style={{
+              flexDirection: 'row',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+            }}>
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+              }}>
+              <View
+                style={{
+                  borderRadius: 100,
+                  marginRight: 20,
+                  padding: 4,
+                  borderWidth: 1,
+                  borderColor: COLOURS.backgroundMedium,
+                  opacity: 0.5,
+                }}>
+                <MaterialCommunityIcons
+                  name="minus"
+                  style={{
+                    fontSize: 16,
+                    color: COLOURS.backgroundDark,
+                  }}
+                />
+              </View>
+              <Text>1</Text>
+              <View
+                style={{
+                  borderRadius: 100,
+                  marginLeft: 20,
+                  padding: 4,
+                  borderWidth: 1,
+                  borderColor: COLOURS.backgroundMedium,
+                  opacity: 0.5,
+                }}>
+                <MaterialCommunityIcons
+                  name="plus"
+                  style={{
+                    fontSize: 16,
+                    color: COLOURS.backgroundDark,
+                  }}
+                />
+              </View>
+            </View>
+            <TouchableOpacity onPress={() => removeItemFromCart(data.id)}>
+              <MaterialCommunityIcons
+                name="delete-outline"
+                style={{
+                  fontSize: 16,
+                  color: COLOURS.backgroundDark,
+                  backgroundColor: COLOURS.backgroundLight,
+                  padding: 8,
+                  borderRadius: 100,
+                }}
+              />
+            </TouchableOpacity>
+          </View>
         </View>
+      </TouchableOpacity>
+    );
+  };
+
+  return (
+    <View
+      style={{
+        width: '100%',
+        height: '100%',
+        backgroundColor: COLOURS.white,
+        position: 'relative',
+      }}>
+      <ScrollView>
+        <View
+          style={{
+            width: '100%',
+            flexDirection: 'row',
+            paddingTop: 16,
+            paddingHorizontal: 16,
+            justifyContent: 'space-between',
+            alignItems: 'center',
+          }}>
+          <TouchableOpacity onPress={() => navigation.goBack()}>
+            <MaterialCommunityIcons
+              name="chevron-left"
+              style={{
+                fontSize: 18,
+                color: COLOURS.backgroundDark,
+                padding: 12,
+                backgroundColor: COLOURS.backgroundLight,
+                borderRadius: 12,
+              }}
+            />
+          </TouchableOpacity>
+          <Text
+            style={{
+              fontSize: 15,
+              color: COLOURS.black,
+              fontWeight: '500',
+              marginRight: 20
+            }}>
+            Tạo đơn hàng
+          </Text>
+          <View></View>
+        </View>
+        <Text
+          style={{
+            fontSize: 20,
+            color: COLOURS.black,
+            fontWeight: '500',
+            letterSpacing: 0.5,
+            paddingTop: 20,
+            paddingLeft: 16,
+            marginBottom: 10,
+          }}>
+          Đơn hàng
+        </Text>
+        <View style={{paddingHorizontal: 16}}>
+          {product ? product.map(renderProducts) : null}
+        </View>
+        <View>
+          <View
+            style={{
+              paddingHorizontal: 16,
+              marginVertical: 10,
+            }}>
+            <Text
+              style={{
+                fontSize: 16,
+                color: COLOURS.black,
+                fontWeight: '500',
+                letterSpacing: 0.5,
+                marginBottom: 20,
+              }}>
+              Mặt hàng đã chọn
+            </Text>
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+              }}>
+              <View
+                style={{
+                  flexDirection: 'row',
+                  width: '80%',
+                  alignItems: 'center',
+                }}>
+                <View
+                  style={{
+                    color: COLOURS.blue,
+                    backgroundColor: COLOURS.backgroundLight,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: 12,
+                    borderRadius: 10,
+                    marginRight: 18,
+                  }}>
+                  <MaterialCommunityIcons
+                    name="truck-delivery-outline"
+                    style={{
+                      fontSize: 18,
+                      color: COLOURS.blue,
+                    }}
+                  />
+                </View>
+                <View>
+                  <Text
+                    style={{
+                      fontSize: 14,
+                      color: COLOURS.black,
+                      fontWeight: '500',
+                    }}>
+                    Sữa rửa mặt
+                  </Text>
+                  <Text
+                    style={{
+                      fontSize: 12,
+                      color: COLOURS.black,
+                      fontWeight: '400',
+                      lineHeight: 20,
+                      opacity: 0.5,
+                    }}>
+                    Số lượng : 2
+                  </Text>
+                </View>
+              </View>
+              <MaterialCommunityIcons
+                name="chevron-right"
+                style={{fontSize: 22, color: COLOURS.black}}
+              />
+            </View>
+          </View>
+          <TouchableOpacity
+          style={{
+            marginTop: 15,
+            paddingHorizontal: 15,
+            flexDirection: 'row',
+          }}
+          // onPress={addLocation}
+          >
+          <Ionicons name="add-outline" size={20} color="rgb(59, 55, 142)" />
+          <Text
+            style={{
+              color: 'rgb(59, 55, 142)',
+              fontSize: 13,
+              fontWeight: '500',
+              marginLeft: 10,
+            }}>
+            Thêm mặt hàng
+          </Text>
+        </TouchableOpacity>
+          <View
+            style={{
+              paddingHorizontal: 16,
+              marginTop: 40,
+              marginBottom: 80,
+            }}>
+            <Text
+              style={{
+                fontSize: 16,
+                color: COLOURS.black,
+                fontWeight: '500',
+                letterSpacing: 0.5,
+                marginBottom: 20,
+              }}>
+              Order Info
+            </Text>
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                marginBottom: 8,
+              }}>
+              <Text
+                style={{
+                  fontSize: 12,
+                  fontWeight: '400',
+                  maxWidth: '80%',
+                  color: COLOURS.black,
+                  opacity: 0.5,
+                }}>
+                Tổng tiền gốc
+              </Text>
+              <Text
+                style={{
+                  fontSize: 12,
+                  fontWeight: '400',
+                  color: COLOURS.black,
+                  opacity: 0.8,
+                }}>
+                đ{total}.00
+              </Text>
+            </View>
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                marginBottom: 22,
+              }}>
+              <Text
+                style={{
+                  fontSize: 12,
+                  fontWeight: '400',
+                  maxWidth: '80%',
+                  color: COLOURS.black,
+                  opacity: 0.5,
+                }}>
+                Chiết khấu
+              </Text>
+              <Text
+                style={{
+                  fontSize: 12,
+                  fontWeight: '400',
+                  color: COLOURS.black,
+                  opacity: 0.8,
+                }}>
+                {total / 20}%
+              </Text>
+            </View>
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+              }}>
+              <Text
+                style={{
+                  fontSize: 12,
+                  fontWeight: '400',
+                  maxWidth: '80%',
+                  color: COLOURS.black,
+                  opacity: 0.5,
+                }}>
+                Tổng
+              </Text>
+              <Text
+                style={{
+                  fontSize: 18,
+                  fontWeight: '500',
+                  color: COLOURS.black,
+                }}>
+                {total + total / 20}đ
+              </Text>
+            </View>
+          </View>
+        </View>
+      </ScrollView>
+
+      <View
+        style={{
+          position: 'absolute',
+          bottom: 10,
+          height: '8%',
+          width: '100%',
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}>
+        <TouchableOpacity
+          onPress={() => (total != 0 ? checkOut() : null)}
+          style={{
+            width: '86%',
+            height: '90%',
+            backgroundColor: COLOURS.blue,
+            borderRadius: 20,
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}>
+          <Text
+            style={{
+              fontSize: 12,
+              fontWeight: '500',
+              letterSpacing: 0.5,
+              color: COLOURS.white,
+              textTransform: 'uppercase',
+            }}>
+            TẠO ĐƠN (&#8377;{total + total / 20} )
+          </Text>
+        </TouchableOpacity>
       </View>
-    </>
+    </View>
   );
 };
 
-export default ImportingGoods;
-
-const styles = StyleSheet.create({
-  inputVoucher: {
-    height: 40,
-    borderWidth: 1,
-    padding: 10,
-    marginTop: 10,
-    width: '90%',
-    borderRadius: 10,
-  },
-  buttonModalText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  buttonModal: {
-    width: 150,
-    height: 50,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 15,
-  },
-  modalButtonContainer: {
-    flexDirection: 'row',
-    paddingTop: 15,
-  },
-  containerHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingBottom: 10,
-    paddingHorizontal: widthDimension * 0.05,
-  },
-  iconCartContainer: {
-    width: 50,
-    height: 50,
-    borderWidth: 1,
-    borderColor: 'rgb(245, 228, 235)',
-    borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  titleHeader: {
-    fontSize: isSmallScreen ? 18 : 23,
-    color: 'black',
-    fontWeight: '500',
-  },
-  priceContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingHorizontal: widthDimension * 0.02,
-  },
-  container: {
-    flex: 1,
-    paddingTop: heightDimension * 0.02,
-    position: 'relative',
-    paddingBottom: heightDimension * 0.165,
-    backgroundColor: 'white',
-  },
-  priceAllContainer: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    width: '100%',
-    backgroundColor: 'white',
-    alignSelf: 'center',
-    paddingHorizontal: widthDimension * 0.05,
-    paddingVertical: heightDimension * 0.04,
-    // flexDirection: 'row',
-    // justifyContent: 'space-between',
-    alignItems: 'center',
-    borderRadius: 15,
-  },
-  priceTitle: {
-    fontSize: isSmallScreen ? 13 : 18,
-    fontWeight: 'bold',
-    color: 'rgb(143, 132, 137)',
-  },
-  priceSpecified: {
-    fontSize: isSmallScreen ? 25 : 30,
-    fontWeight: 'bold',
-    color: 'black',
-    paddingRight: 10,
-  },
-  buttonContainer: {
-    backgroundColor: 'rgb(37, 41, 109)',
-    paddingVertical: 20,
-    paddingHorizontal: widthDimension * 0.1,
-    borderRadius: 15,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  buttonText: {
-    color: 'white',
-    fontWeight: 'bold',
-    fontSize: isSmallScreen ? 15 : 20,
-  },
-  iconButtonContainer: {
-    marginLeft: 15,
-    width: 30,
-    height: 30,
-    backgroundColor: 'white',
-    borderRadius: 15,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  centeredViewModal: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.4)',
-  },
-  modalView: {
-    margin: 20,
-    backgroundColor: 'white',
-    borderRadius: 20,
-    padding: 35,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 5,
-  },
-  modalText: {
-    fontSize: 18,
-    color: 'black',
-    textAlign: 'center',
-  },
-});
+export default MyCart;

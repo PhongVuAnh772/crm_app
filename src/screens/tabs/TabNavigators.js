@@ -37,6 +37,8 @@ import askingIcon from '../assets/question.png';
 import axios from 'axios';
 import {useSelector, useDispatch} from 'react-redux';
 import animatedSuccess from '../assets/success.gif';
+// minuscircle
+import AntDesign from 'react-native-vector-icons/AntDesign'
 import {
   CLEAR_USER_INTRODUCING_AGENT,
   UPDATE_USER_INTRODUCING_AGENT,
@@ -59,7 +61,6 @@ export default function App() {
         await AsyncStorage.setItem('userDontCare', '0');
       } else if (introducingAgent === null && value === '0') {
         setModalVisible(true);
-        
       } else {
         await AsyncStorage.getItem('introducingAgent')
           .then(introducingAgentString => {
@@ -98,7 +99,7 @@ export default function App() {
     if (response.data && response.data[0]?.value !== '') {
       setLoading(false);
       setSuccessAction(true);
-      // setModalVisible(false);
+      setModalVisible(false);
       await AsyncStorage.setItem(
         'introducingAgent',
         JSON.stringify(response.data),
@@ -124,7 +125,7 @@ export default function App() {
 
         <View style={styles.centeredView}>
           <View style={styles.modalView}>
-            <Image source={askingIcon} style={styles.modalIcon} alt=""/>
+            <Image source={askingIcon} style={styles.modalIcon} alt="" />
             <Text
               style={{
                 fontSize: 16,
@@ -167,10 +168,12 @@ export default function App() {
                   borderRadius: 15,
                   justifyContent: 'center',
                   alignItems: 'center',
+                  flexDirection: 'row'
                 }}
                 onPress={() => handleDontCare()}>
+                <AntDesign name="warning" color="rgb(252, 211, 105)" size={20}/>
                 <Text
-                  style={{fontSize: 15, fontWeight: 'bold', color: 'white'}}>
+                  style={{fontSize: 15, fontWeight: 'bold', color: 'white',paddingLeft: 10}}>
                   Đừng hỏi lại
                 </Text>
               </TouchableOpacity>
@@ -184,9 +187,12 @@ export default function App() {
                     borderRadius: 15,
                     justifyContent: 'center',
                     alignItems: 'center',
+                    flexDirection:'row'
                   }}>
+                                                        <AntDesign name="checkcircleo" color="white" size={20}/>
+
                   <Text
-                    style={{fontSize: 16, fontWeight: 'bold', color: 'white'}}>
+                    style={{fontSize: 16, fontWeight: 'bold', color: 'white',paddingLeft: 10}}>
                     Đồng ý
                   </Text>
                 </View>
@@ -195,12 +201,15 @@ export default function App() {
                   style={{
                     width: '55%',
                     paddingVertical: 15,
-                    backgroundColor: 'rgb(255, 158, 185)',
+                    backgroundColor: colorConstants.primaryColor,
                     borderRadius: 15,
                     justifyContent: 'center',
                     alignItems: 'center',
+                    flexDirection:'row'
                   }}
                   onPress={() => handleAccept()}>
+                                                        <AntDesign name="checkcircleo" color="white" size={20}style={{paddingRight: 10}}/>
+
                   {loading ? (
                     <FastImage
                       style={{width: 20, height: 20}}
@@ -220,6 +229,7 @@ export default function App() {
                         fontWeight: 'bold',
                         color: 'white',
                       }}>
+                        
                       Đồng ý
                     </Text>
                   )}

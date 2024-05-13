@@ -8,7 +8,7 @@ import {
   Image,
   ScrollView,
   StatusBar,
-  TextInput,
+  TextInput,ActivityIndicator
 } from 'react-native';
 import React, {useState, useEffect, useRef} from 'react';
 import {createMaterialTopTabNavigator} from '@react-navigation/material-top-tabs';
@@ -26,24 +26,88 @@ import TicketClassScreen from './children/ticket/TicketClassScreen';
 import {useSelector, useDispatch} from 'react-redux';
 import {Dropdown} from 'react-native-element-dropdown';
 import AntDesign from 'react-native-vector-icons/AntDesign';
-
+import Toast from 'react-native-toast-message';
+import { CHANGE_VALUE_LIST } from '../../../../../../../../../slices/list-campaign/listCampaignSlice';
 const heightDimension = Dimensions.get('window').height;
 
 const CreatingCampaign = route => {
   const ticket = useSelector(state => state.ticket);
   const location = useSelector(state => state.location);
+
+  const notificationGreeting = useSelector(
+    state => state.otherCampaign.notificationGreeting,
+  );
+  const contentShowingQR = useSelector(
+    state => state.otherCampaign.contentShowingQR,
+  );
   const codeSpinning = useSelector(state => state.otherCampaign.codeSpinning);
   const personWinning = useSelector(state => state.otherCampaign.personWinning);
   const codeHexColor = useSelector(state => state.otherCampaign.codeHexColor);
-  const [nameCampaign, setNameCampaign] = useState('')
-  const handleAddCampaign = () => {
-    console.log(location)
-  }
+  const checkinName = useSelector(state => state.otherCampaign.checkinName);
+  const ticketData = useSelector(state => state.ticket);
+  const team = useSelector(state => state.team);
+  const locations = useSelector(state => state.location);
+  const token = useSelector(state => state.auth.token);
+  const network = useSelector(state => state.network.ipv4);
 
-  const convertedObject = location.reduce((acc, curr, index) => {
-    acc[index + 1] = curr.address || '';
-    return acc;
-  }, {});
+  const [loading, setLoading] = useState(false);
+  const [nameCampaign, setNameCampaign] = useState('');
+
+  const handleAddCampaign = async () => {
+    //   const convertedObject = location.reduce((acc, curr, index) => {
+    //   acc[index + 1] = curr.address || '';
+    //   return acc;
+    // }, {});
+    setLoading(true);
+    try {
+      const response = await axios.post(`${network}/saveInfoCampaignAPI`, {
+        token: token,
+        name: nameCampaign,
+        name_show: checkinName,
+        text_welcome: notificationGreeting,
+        noteCheckin: contentShowingQR,
+        codeSecurity: codeSpinning,
+        colorText: codeHexColor,
+        codePersonWin: personWinning,
+        location: locations,
+        ticket: ticketData,
+        team: team,
+      });
+      if (response.data && response.data.code === 0) {
+        const response2 = await axios.post(`${network}/getListCampaignAPI`, {
+          token: token,
+          limit: 20,
+          page: 1,
+        });
+
+        if (response2.data && response2.data.code === 0) {
+          dispatch(CHANGE_VALUE_LIST(response2.data.listData));
+          setLoading(false);
+          navigation.goBack();
+          Toast.show({
+            type: 'success',
+            text1: 'Sửa chiến dịch thành công',
+          });
+        } else {
+          Toast.show({
+            type: 'success',
+            text1: 'Sửa thành công, sẽ cập nhật lại sau ít phút',
+          });
+        }
+      } else if (response.data && response.data.code === 3) {
+        console.log(response.data);
+      } else {
+        console.log(response.data);
+      }
+    } catch (e) {
+      setLoading(false);
+      Toast.show({
+        type: 'error',
+        text1: 'Lỗi mạng, hãy thử lại',
+      });
+    }
+  };
+
   const navigation = useNavigation();
   const [data, setData] = useState([]);
   const [value, setValue] = useState(null);
@@ -69,7 +133,7 @@ const CreatingCampaign = route => {
   useEffect(() => {
     fetchData();
   }, []);
-  
+
   function MyTabBar({state, descriptors, navigation, position}) {
     return (
       <ScrollView
@@ -160,7 +224,7 @@ const CreatingCampaign = route => {
     {label: 'Kích hoạt', value: '1'},
     {label: 'Khóa', value: '2'},
   ];
-  
+
   return (
     <View style={{backgroundColor: 'rgb(59, 55, 142)', flex: 1}}>
       <StatusBar barStyle="light-content" backgroundColor="rgb(59, 55, 142)" />
@@ -175,21 +239,19 @@ const CreatingCampaign = route => {
           alignItems: 'center',
         }}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
-                  <FontAwesome6 name="arrow-left-long" size={15} color="white" />
-
+          <FontAwesome6 name="arrow-left-long" size={15} color="white" />
         </TouchableOpacity>
-        <View style={{flex: 0.8,alignItems:'center'}}>
+        <View style={{flex: 0.8, alignItems: 'center'}}>
           <Text
-          style={{
-            color: 'white',
-            fontSize: 16,
-            paddingLeft: 30,
-            fontWeight: '600',
-          }}>
-          Tạo mới chiến dịch
-        </Text>
+            style={{
+              color: 'white',
+              fontSize: 16,
+              paddingLeft: 30,
+              fontWeight: '600',
+            }}>
+            Tạo mới chiến dịch
+          </Text>
         </View>
-      
       </View>
       <View
         style={{
@@ -208,7 +270,7 @@ const CreatingCampaign = route => {
         </Text>
         <TextInput
           style={styles.input}
-          onChangeText={(text) => setNameCampaign(text)}
+          onChangeText={text => setNameCampaign(text)}
           value={nameCampaign}
           placeholder="Nhập tên chiến dịch"
           placeholderTextColor="white"
@@ -311,9 +373,14 @@ const CreatingCampaign = route => {
             borderRadius: 15,
           }}
           onPress={() => handleAddCampaign()}>
-          <Text style={{color: 'white', fontSize: 15, fontWeight: 'bold'}}>
+          
+          {loading ? (
+                <ActivityIndicator size="small" color="white" />
+              ) : (
+                <Text style={{color: 'white', fontSize: 15, fontWeight: 'bold'}}>
             Lưu thay đổi
           </Text>
+              )}
         </TouchableOpacity>
       </View>
     </View>

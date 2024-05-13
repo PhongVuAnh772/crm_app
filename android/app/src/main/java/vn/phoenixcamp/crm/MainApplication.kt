@@ -1,4 +1,4 @@
-package com.crm_app
+package vn.phoenixcamp.crm
 
 import android.app.Application
 import com.facebook.react.PackageList

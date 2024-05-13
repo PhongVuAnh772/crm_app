@@ -25,7 +25,7 @@ import {
 } from '../../slices/auth/authSlice';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { colorConstants } from '../../constants/colors/colors';
-
+import Ionicons from 'react-native-vector-icons/Ionicons';
 
 const widthDimension = Dimensions.get('screen').width;
 const heightDimension = Dimensions.get('screen').height;
@@ -36,6 +36,7 @@ const LoginScreen = () => {
 
   const dispatch = useDispatch();
   const network = useSelector(state => state.network.ipv4);
+  const [visible,setVisible] =useState(true)
   const [isFocusedUsername, setIsFocusedUsername] = useState(false);
   const [isFocusedPassword, setIsFocusedPassword] = useState(false);
   const [inputPhone, setInputPhone] = useState('0366886886');
@@ -43,10 +44,12 @@ const LoginScreen = () => {
   const [errMessage, setErrorMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const handleLogin = async () => {
+    const storedTokenDevice = await AsyncStorage.getItem('token_device');
     setLoading(true);
     const response = await axios.post(`${network}/checkLoginMemberAPI`, {
       phone: inputPhone,
       password: inputPassword,
+      token_device: storedTokenDevice
     });
     if (response.data && response.data.code === 0) {
       dispatch(UPDATE_USER_DATA(response.data.info_member));
@@ -109,6 +112,7 @@ const LoginScreen = () => {
               setErrorMessage(false);
               setInputPhone(text);
             }}
+            autoFocus
             value={inputPhone}
           />
         </View>
@@ -123,7 +127,7 @@ const LoginScreen = () => {
           </Text>
           <TextInput
             style={[styles.input]}
-            secureTextEntry={true}
+            secureTextEntry={visible}
             placeholderTextColor="gray"
             maxLength={50}
             onFocus={() => setIsFocusedPassword(true)}
@@ -132,8 +136,10 @@ const LoginScreen = () => {
               setInputPassword(text);
               setErrorMessage(false);
             }}
+            
             value={inputPassword}
           />
+          <TouchableOpacity style={{position:'absolute',top: '70%',right: 15,width: 20,height: 20}} onPress={() => setVisible(!visible)}><Ionicons name={visible ? "eye-outline" :  "eye-off-outline"} color="black" size={18} /></TouchableOpacity>
         </View>
         <TouchableOpacity
           onPress={() => navigation.navigate('ForgetPasswordIndex')}>

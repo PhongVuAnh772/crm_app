@@ -9,6 +9,9 @@ import otherCampaignReducer from '../slices/campaign/others/otherCampaignSlice';
 import AddLocationReducer from '../slices/add-campaign/location/AddLocationSlice';
 import AddTicketCampaignReducer from '../slices/add-campaign/ticket/TicketCampaignSlice';
 import addOtherCampaignReducer from '../slices/add-campaign/others/otherCampaignSlice';
+import AddTeamReducer from '../slices/add-campaign/teams/AddTeamSlice';
+import TeamReducer from '../slices/campaign/teams/TeamSlice';
+import listCampaignReducer from '../slices/list-campaign/listCampaignSlice';
 export const store = configureStore({
   reducer: {
     network: networkReducer,
@@ -17,10 +20,13 @@ export const store = configureStore({
     user: userReducer,
     ticket: TicketCampaignReducer,
     location: LocationSlice,
+    team: TeamReducer,
     otherCampaign: otherCampaignReducer,
     addTicket: AddTicketCampaignReducer,
     addLocation: AddLocationReducer,
-    addOtherCampaign: addOtherCampaignReducer, 
+    addOtherCampaign: addOtherCampaignReducer,
+    addTeam: AddTeamReducer,
+    listCampaigns: listCampaignReducer
   },
   middleware: getDefaultMiddleware =>
     getDefaultMiddleware({

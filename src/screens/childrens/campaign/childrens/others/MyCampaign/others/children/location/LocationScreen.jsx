@@ -26,23 +26,18 @@ const LocationScreen = () => {
   const [dataParsing, setDataParsing] = useState(null);
 
   const handleAddressChange = (index, value) => {
-    // Tạo bản sao của dataParsing
-    // const newDataParsing = {...dataParsing};
+    const newDataParsing = {...dataParsing};
 
-    // // Cập nhật giá trị mới vào bản sao
-    // if (newDataParsing[index]) {
-    //   newDataParsing[index] = {
-    //     ...newDataParsing[index],
-    //     address: value,
-    //   };
-    // }
+    if (newDataParsing[index]) {
+      newDataParsing[index] = {
+        ...newDataParsing[index],
+        address: value,
+      };
+    }
 
-    // // Cập nhật state
-    // setDataParsing(newDataParsing);
+    setDataParsing(newDataParsing);
 
-    // // Gửi action đến Redux
-    // dispatch(updateAddLocation({index, address: value}));
-    console.log(dataParsing)
+    dispatch(updateAddLocation({index, address: value}));
   };
 
   const addLocationHandler = () => {

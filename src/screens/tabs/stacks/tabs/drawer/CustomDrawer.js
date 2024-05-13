@@ -14,43 +14,60 @@ import {
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import {useSelector, useDispatch} from 'react-redux';
-import avatarNull from '../../../../assets/avatar-null.png'
+import avatarNull from '../../../../assets/avatar-null.png';
 const CustomDrawer = props => {
-      const userData = useSelector(state => state.user.user);
-    const loginChecking = useSelector(state => state.auth.login);
-
+  const userData = useSelector(state => state.user.user);
+  const loginChecking = useSelector(state => state.auth.login);
   return (
-    <View style={{flex: 1,position:'relative'}}>
+    <View style={{flex: 1, position: 'relative'}}>
       <DrawerContentScrollView
         {...props}
         contentContainerStyle={{backgroundColor: '#8200d6'}}>
         <ImageBackground
           source={require('./assets/menu-bg.jpeg')}
-          style={{padding: 20}}>
+          style={{padding: 20, flexDirection: 'row'}}>
+          {loginChecking ? (
+            <Image
+              alt=""
+              source={{uri: userData.avatar}}
+              style={{
+                height: 60,
+                width: 60,
+                borderRadius: 40,
+                marginBottom: 10,
+                backgroundColor: 'white',
+                resizeMode: 'contain',
+              }}
+            />
+          ) : (
+            <Image
+              alt=""
+              source={avatarNull}
+              style={{
+                height: 60,
+                width: 60,
+                borderRadius: 40,
+                marginBottom: 10,
+                backgroundColor: 'white',
+              }}
+            />
+          )}
           
-          {loginChecking ? <Image alt=""
-  source={{uri : userData.avatar}}
-              style={{height: 60, width: 60, borderRadius: 40, marginBottom: 10,backgroundColor:'white',resizeMode:'contain'}}
-
-/> : <Image alt=""
-  source={avatarNull}
-              style={{height: 60, width: 60, borderRadius: 40, marginBottom: 10,backgroundColor:'white'}}
-
-/>}
-          <Text
+          <View style={{flexDirection: 'column',paddingLeft :10,justifyContent:'space-around'}}>
+            <Text
             style={{
               color: '#fff',
-              fontSize: 18,
+              fontSize: 15,
               marginBottom: 5,
             }}>
             {userData ? userData.name : 'Bạn chưa đăng nhập'}
           </Text>
-          <View style={{flexDirection: 'row'}}>
             <Text
               style={{
                 color: '#fff',
                 fontFamily: 'Roboto-Regular',
-                marginRight: 5,
+                marginRight: 5,              fontSize: 13,
+
               }}>
               {userData ? userData.email : ''}
             </Text>
@@ -60,30 +77,39 @@ const CustomDrawer = props => {
           <DrawerItemList {...props} />
         </View>
       </DrawerContentScrollView>
-      <View style={{padding: 5, borderTopWidth: 1, borderTopColor: '#ccc',position:'absolute',bottom: 55,width:'100%',paddingLeft: 15}}>
-        
+      <View
+        style={{
+          padding: 5,
+          borderTopWidth: 1,
+          borderTopColor: '#ccc',
+          position: 'absolute',
+          bottom: 55,
+          width: '100%',
+          paddingLeft: 15,
+        }}>
         <TouchableOpacity onPress={() => {}} style={{paddingVertical: 15}}>
           <View style={{flexDirection: 'row', alignItems: 'center'}}>
-            <Ionicons name="share-social-outline" size={18} color="black"/>
+            <Ionicons name="share-social-outline" size={18} color="black" />
             <Text
               style={{
                 fontSize: 13,
                 fontFamily: 'Roboto-Medium',
                 marginLeft: 5,
-                color:'black'
+                color: 'black',
               }}>
-              Chia sẻ ứng dụng
+              Đánh giá ứng dụng
             </Text>
           </View>
         </TouchableOpacity>
         <TouchableOpacity onPress={() => {}} style={{paddingVertical: 15}}>
           <View style={{flexDirection: 'row', alignItems: 'center'}}>
-            <Ionicons name="exit-outline" size={18} color="black"/>
+            <Ionicons name="exit-outline" size={18} color="black" />
             <Text
               style={{
                 fontSize: 13,
                 fontFamily: 'Roboto-Medium',
-                marginLeft: 5,color:'black'
+                marginLeft: 5,
+                color: 'black',
               }}>
               Đăng xuất
             </Text>

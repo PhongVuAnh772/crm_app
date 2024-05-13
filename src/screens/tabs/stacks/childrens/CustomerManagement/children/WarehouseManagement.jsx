@@ -80,9 +80,10 @@ const WarehouseManagement = () => {
   const handleAddWarehouse = async () => {};
   const handleAddGroupCustomer = async () => {
     setLoadingAddGroup(true);
-    const response = await axios.post(`${network}/addGroupCustomerAPI`, {
+    const response = await axios.post(`${network}/getHistoryWarehouseProductAPI`, {
       token: token,
-      name: textAddGroup,
+      limit: 30,
+      page: 1
     });
     if (response.data && response.data.code === 0) {
       // setDataHistory(response.data.listData);
@@ -1028,7 +1029,8 @@ const WarehouseManagement = () => {
             </View>
             <Entypo name="chevron-right" color="white" size={18} />
           </View>
-          <View
+          <TouchableOpacity
+            onPress={() => navigation.navigate('HistoryRequests')}
             style={[
               styles.card,
               styles.shadowProp,
@@ -1044,7 +1046,7 @@ const WarehouseManagement = () => {
               <Text style={styles.heading}>Lịch sử xuất nhập hàng</Text>
             </View>
             <Entypo name="chevron-right" color="white" size={18} />
-          </View>
+          </TouchableOpacity>
         </View>
       </TouchableWithoutFeedback>
     </>
@@ -1326,6 +1328,7 @@ const styles = StyleSheet.create({
   scrollViewJobSummary: {
     paddingTop: 20,
     maxHeight: 200,
+    flex: 1
   },
   jobSummarySpecified: {
     width: 100,

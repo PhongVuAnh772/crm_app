@@ -28,7 +28,11 @@ const { width } = Dimensions.get('window');
 const isSmallScreen = width < 375; 
 import { DrawerActions } from 'react-navigation/';
 import { colorConstants } from '../../../../../../../constants/colors/colors';
-const HomeHeader = () => {
+const HomeHeader = ({searching}) => {
+  useEffect(() => {
+    console.log(searching)
+  }, [])
+  
   const navigation = useNavigation();
   const bellIconRef = useRef(null);
   const [text, onChangeText] = useState('Useless Text');
@@ -64,9 +68,13 @@ const HomeHeader = () => {
   }
 };
   useEffect(() => {
-  if (number.length === 10) {
+  if (number.length === 10 ) {
     setEnableSearching(true)
     fetchData();
+  }
+  else if (number.length === 0 && !searching ){
+        setEnableSearching(false)
+
   }
   
 }, [number]);
@@ -75,9 +83,9 @@ const HomeHeader = () => {
   }
   return (
     <TouchableWithoutFeedback onPress={onPressFeedback}>
-      <View  style={styles.container}>
-      <View style={styles.wrapper}>
-        <View style={styles.logoContainer}>
+      <View  style={styles.containerHeader}>
+      <View style={styles.wrapperHeader}>
+        <View style={styles.logoContainerHeader}>
           <TouchableOpacity
             onPress={() => navigation.openDrawer()}
             style={{
@@ -94,10 +102,10 @@ const HomeHeader = () => {
             <Feather name="menu" size={17} color={colorConstants.secondaryColor} />
           </TouchableOpacity>
 
-          <Image source={phoenixLogo} style={styles.imageLogo} alt=""/>
+          <Image source={phoenixLogo} style={styles.imageLogoHeader} alt=""/>
         </View>
 
-        <View style={styles.actionHeaderContainer}>
+        <View style={styles.actionHeaderContainerHeader}>
           <TouchableOpacity
             onPress={() => navigation.navigate('CartScreen')}
             style={{
@@ -138,10 +146,10 @@ const HomeHeader = () => {
             />
             <View
               style={[
-                styles.numberNotificationContainer,
+                styles.numberNotificationContainerHeader,
                 {right: 7, top: 5}, // Điều chỉnh vị trí tương đối với icon bell
               ]}>
-              <Text style={styles.numberNotification}>5</Text>
+              <Text style={styles.numberNotificationHeader}>5</Text>
             </View>
           </TouchableOpacity>
 
@@ -190,10 +198,10 @@ const HomeHeader = () => {
           )}
         </View>
       </View>
-      <View style={styles.searchSpecifiedContainer}>
-        <View style={styles.searchContainer}>
+      <View style={styles.searchSpecifiedContainerHeader}>
+        <View style={styles.searchContainerHeader}>
           <TextInput
-            style={styles.inputSearching}
+            style={styles.inputSearchingHeader}
             onChangeText={onChangeNumber}
             value={number}
             placeholder="Tra cứu đại lý bằng số điện thoại"
@@ -201,12 +209,12 @@ const HomeHeader = () => {
             placeholderTextColor="gray"
           />
 
-          <View style={styles.searchIconContainer}>
+          <View style={styles.searchIconContainerHeader}>
             <Octicons name="search" size={18} color="gray" />
           </View>
           
-          {enableSearching && <View style={styles.searchResultsContainer}>
-            <View style={styles.searchResult}>
+          {(enableSearching) && <View style={styles.searchResultsContainerHeader}>
+            <View style={styles.searchResultHeader}>
               {dataHeaderSearch.length > 0 && <View
                 style={{
                   flexDirection: 'row',
@@ -221,7 +229,7 @@ const HomeHeader = () => {
                 alt=""
                   source={{uri: userData.avatar}}
                   style={[
-                    styles.imageContainer,
+                    styles.imageContainerHeader,
                     {
                       borderRadius: 25,
                       resizeMode: 'contain',
@@ -258,7 +266,7 @@ const HomeHeader = () => {
                       
                     }}>
                     {userData.phone}
-                  </Text>, {userData.address}
+                  </Text>
                   </Text>
                 </View>
               </View>}
@@ -275,12 +283,12 @@ const HomeHeader = () => {
 export default HomeHeader;
 
 const styles = StyleSheet.create({
-  logoContainer: {
+  logoContainerHeader: {
     flexDirection: 'row',
     alignItems: 'flex-end',
     marginBottom: heightDimension * 0.015,
   },
-  container: {
+  containerHeader: {
     paddingBottom: heightDimension * 0.015,
     borderBottomColor: 'rgb(244, 244, 244)',
     borderBottomWidth: 1,
@@ -293,24 +301,24 @@ const styles = StyleSheet.create({
     height: 50,
     resizeMode: 'contain',
   },
-  wrapper: {
+  wrapperHeader: {
     paddingHorizontal: heightDimension * 0.015,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
-  actionHeaderContainer: {
+  actionHeaderContainerHeader: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
     alignItems: 'flex-end',
     height: 40,
   },
-  textLogo: {
+  textLogoHeader: {
     fontSize: 18,
     color: 'black',
     fontWeight: 'bold',
   },
-  numberNotificationContainer: {
+  numberNotificationContainerHeader: {
     backgroundColor: 'red',
     height: 12,
     borderRadius: 10,
@@ -319,12 +327,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  numberNotification: {
+  numberNotificationHeader: {
     fontSize: 10,
     fontWeight: 'bold',
     color: 'white',
   },
-  buttonSearch: {
+  buttonSearchHeader: {
     width: '28%',
     height: 40,
     backgroundColor: colorConstants.secondaryColor,
@@ -335,13 +343,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     marginLeft: 10,
   },
-  titleButtonSearching: {
+  titleButtonSearchingHeader: {
     fontSize: 15,
     color: 'white',
     fontWeight: 'bold',
     paddingLeft: 10,
   },
-  actionWrapper: {
+  actionWrapperHeader: {
     borderWidth: 2,
     borderColor: 'rgb(244, 244, 244)',
     paddingVertical: heightDimension * 0.01,
@@ -349,39 +357,39 @@ const styles = StyleSheet.create({
 
     paddingHorizontal: heightDimension * 0.015,
   },
-  imageContainer: {
+  imageContainerHeader: {
     width: 50,
     height: 50,
     borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  titleSearching: {
+  titleSearchingHeader: {
     fontSize: 20,
     color: 'black',
     fontWeight: 'bold',
   },
-  titleSearchingLogo: {
+  titleSearchingLogoHeader: {
     fontSize: 20,
     color: colorConstants.secondaryColor,
     fontWeight: 'bold',
     marginBottom: 5,
     marginLeft: 10,
   },
-  searchSpecifiedContainer: {
+  searchSpecifiedContainerHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingLeft: heightDimension * 0.015,
     position: 'relative',
   },
-  searchResultsContainer: {
+  searchResultsContainerHeader: {
     width: '100%',
     position: 'absolute',
     top: '100%',
     left: 0,
     zIndex: 100,
   },
-  searchResult: {
+  searchResultHeader: {
     width: '100%',
         backgroundColor:'white',
     borderRadius: 10,
@@ -389,7 +397,7 @@ const styles = StyleSheet.create({
     elevation: 5,
     shadowColor: '#52006A',
   },
-  inputSearching: {
+  inputSearchingHeader: {
     height:  isSmallScreen ? 40 : 45,
     borderWidth: 0.6,
     padding: 10,
@@ -401,21 +409,21 @@ const styles = StyleSheet.create({
     paddingLeft: 40,
     color: 'gray',
   },
-  imageLogo: {
+  imageLogoHeader: {
     width: isSmallScreen ? 50 : 70,
     height: 55,
     resizeMode: 'contain',
   },
-  imageLogoDescription: {
+  imageLogoDescriptionHeader: {
     width: 100,
     height: 60,
     resizeMode: 'contain',
   },
-  searchContainer: {
+  searchContainerHeader: {
     position: 'relative',
     width: '96%',
   },
-  searchIconContainer: {
+  searchIconContainerHeader: {
     position: 'absolute',
     left: 15,
     top: 18,

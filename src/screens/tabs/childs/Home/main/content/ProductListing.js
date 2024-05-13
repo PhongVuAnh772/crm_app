@@ -96,9 +96,9 @@ const ProductListing = () => {
                   <Animated.Text
                     style={styles.nameQuantity}
                     entering={FadeInLeft.duration(600)}>
-                    Số lượng :{' '}
+                    Lượt xem :{' '}
                     <Text style={styles.nameQuantitySpecified}>
-                      {item.quantity}
+                      {item.view}
                     </Text>
                   </Animated.Text>
                 </View>

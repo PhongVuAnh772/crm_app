@@ -9,6 +9,8 @@ import {
   ScrollView,
   StatusBar,
   TextInput,
+  Modal,
+  ActivityIndicator,
 } from 'react-native';
 import React, {useState, useEffect, useRef} from 'react';
 import {createMaterialTopTabNavigator} from '@react-navigation/material-top-tabs';
@@ -26,11 +28,13 @@ import TicketClassScreen from './children/ticket/TicketClassScreen';
 import {useSelector, useDispatch} from 'react-redux';
 import {Dropdown} from 'react-native-element-dropdown';
 import AntDesign from 'react-native-vector-icons/AntDesign';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import {
   addAddLocation,
   updateAddLocation,
   deleteAddLocation,
-  resetLocations,replaceAddLocations
+  resetLocations,
+  replaceAddLocations,
 } from '../../../../../../../../slices/add-campaign/location/AddLocationSlice';
 import {
   changeAddCheckinName,
@@ -43,12 +47,29 @@ import {
   changeAddBackgroundPicture,
 } from '../../../../../../../../slices/add-campaign/others/otherCampaignSlice';
 import {
+  addAddTeams,
+  updateAddTeams,
+  deleteAddTeams,
+  resetAddTeams,
+  replaceAddTeams,
+} from '../../../../../../../../slices/add-campaign/teams/AddTeamSlice';
+import {
   updateAddInput,
-  addAddInput,replaceAddInput
+  addAddInput,
+  replaceAddInput,
 } from '../../../../../../../../slices/add-campaign/ticket/TicketCampaignSlice';
+import {
+  CHANGE_VALUE_LIST,
+  DELETE_ALL_VALUES_LIST,
+} from '../../../../../../../../slices/list-campaign/listCampaignSlice';
+import Toast from 'react-native-toast-message';
 
 const heightDimension = Dimensions.get('window').height;
+const widthDimension = Dimensions.get('window').width;
+const {width} = Dimensions.get('window');
+const isSmallScreen = width < 375;
 const SpecifiedCampaign = ({route}) => {
+  const listCampaign = useSelector(state => state.listCampaigns.info);
   const dispatch = useDispatch();
   const {item} = route.params;
   const ticket = useSelector(state => state.ticket);
@@ -58,16 +79,53 @@ const SpecifiedCampaign = ({route}) => {
   //   return acc;
   // }, {});
   const [data, setData] = useState([]);
-  const [value, setValue] = useState(null);
-
+  const [value, setValue] = useState(item?.status === 'lock' ? '2' : '1');
+  // useEffect(() => {
+  //   setValue(item?.status === 'lock' ? '2' : '1')
+  // }, [])
+  const [visibleModalDelete, setVisibleModalDelete] = useState(false);
   const [isFocus, setIsFocus] = useState(false);
   const [inputName, setInputName] = useState('');
   const windowWidth = Dimensions.get('window').width;
   const ticketData = useSelector(state => state.addTicket);
+  const network = useSelector(state => state.network.ipv4);
+  const token = useSelector(state => state.auth.token);
+  const [loading, setLoading] = useState(false);
+
+  const handleDelete = async () => {
+    setLoading(true);
+    const response = await axios.post(`${network}/deleteCampaignAPI`, {
+      token: token,
+      id: item.id,
+    });
+    if (response.data && response.data.code === 0) {
+      const response2 = await axios.post(`${network}/getListCampaignAPI`, {
+        token: token,
+        limit: 20,
+        page: 1,
+      });
+
+      if (response2.data && response2.data.code === 0) {
+        dispatch(CHANGE_VALUE_LIST(response2.data.listData));
+        setLoading(false);
+        navigation.goBack();
+        Toast.show({
+          type: 'success',
+          text1: 'Xóa chiến dịch thành công',
+        });
+      } else {
+        Toast.show({
+          type: 'success',
+          text1: 'Xóa thành công, sẽ cập nhật lại sau ít phút',
+        });
+      }
+    }
+  };
 
   const fetchData = async () => {
-    const dataTicketParse = (JSON.parse(item.ticket))
-    const dataLocationParse = (JSON.parse(item.location))
+    const dataTicketParse = JSON.parse(item.ticket);
+    const dataTeamParse = JSON.parse(item.team);
+    const dataLocationParse = JSON.parse(item.location);
     dispatch(changeAddCheckinName(item.name_show));
     dispatch(changeAddNotificationGreeting(item.text_welcome));
     dispatch(changeAddContentShowingQR(item.noteCheckin));
@@ -78,18 +136,115 @@ const SpecifiedCampaign = ({route}) => {
     dispatch(changeAddLogoPicture(item.img_logo));
     dispatch(changeAddBackgroundPicture(item.img_background));
     dispatch(replaceAddInput(dataTicketParse));
-        dispatch(replaceAddLocations(dataLocationParse));
-
+    dispatch(replaceAddLocations(dataLocationParse));
+    dispatch(replaceAddTeams(dataTeamParse));
   };
 
   useEffect(() => {
     fetchData();
   }, []);
+  const checkinName = useSelector(state => state.addOtherCampaign.checkinName);
+  const notificationGreeting = useSelector(
+    state => state.addOtherCampaign.notificationGreeting,
+  );
+  const contentShowingQR = useSelector(
+    state => state.addOtherCampaign.contentShowingQR,
+  );
+  const codeSpinning = useSelector(
+    state => state.addOtherCampaign.codeSpinning,
+  );
+  const personWinning = useSelector(
+    state => state.addOtherCampaign.personWinning,
+  );
+  const codeHexColor = useSelector(
+    state => state.addOtherCampaign.codeHexColor,
+  );
+  const locations = useSelector(state => state.addLocation);
+  const team = useSelector(state => state.addTeam);
 
-  const handleFixingCampaign = () => {
-    console.log(ticketData)
-  }
-  
+  const handleFixingCampaign = async () => {
+    setLoading(true);
+    try {
+      const response = await axios.post(`${network}/saveInfoCampaignAPI`, {
+        token: token,
+        id: item.id,
+        // name: inputName,
+        // name_show: checkinName,
+        // text_welcome: notificationGreeting,
+        // noteCheckin: contentShowingQR,
+        // codeSecurity: codeSpinning,
+        // colorText: codeHexColor,
+        // codePersonWin: personWinning,
+        // location: JSON.stringify(locations).replace(/"/g, "'"),
+        // ticket: JSON.stringify(ticketData).replace(/"/g, "'"),team:JSON.stringify(team).replace(/"/g, "'")
+        name: 'Kinh doanh thành công',
+        name_show: 'Kinh doanh thành công',
+        text_welcome: 'Chào mừng bạn đến với sự kiện Kinh doanh thành công',
+        noteCheckin: 'Chào mừng bạn đến với sự kiện Kinh doanh thành công',
+        codeSecurity: '12345',
+        colorText: '#fff',
+        codePersonWin: '1,2,3',
+        location: {
+          1: 'Hà Nội ngày 4-5/5',
+          2: 'Sài Gòn tháng 7/2024',
+          3: '',
+          4: '',
+          5: '',
+          6: '',
+          7: '',
+          8: '',
+          9: '',
+          10: '',
+        },
+        ticket: {
+          1: {name: 'Thường', price: 0},
+          2: {name: 'VIP', price: 1000000},
+        },
+        team: {
+          1: {name: 'Quỳnh Anh 0967777777', id_member: 256},
+          2: {name: 'Hồng Minh 0941923999', id_member: 62},
+        },
+        status: "active"
+      });
+
+      if (response.data && response.data.code === 0) {
+        const response2 = await axios.post(`${network}/getListCampaignAPI`, {
+          token: token,
+          limit: 20,
+          page: 1,
+        });
+
+        if (response2.data && response2.data.code === 0) {
+          dispatch(CHANGE_VALUE_LIST(response2.data.listData));
+          setLoading(false);
+          navigation.goBack();
+          Toast.show({
+            type: 'success',
+            text1: 'Sửa chiến dịch thành công',
+          });
+        } else {
+          Toast.show({
+            type: 'success',
+            text1: 'Sửa thành công, sẽ cập nhật lại sau ít phút',
+          });
+        }
+      } else if (response.data && response.data.code === 3) {
+        console.log(response.data);
+      } else {
+        console.log(response.data);
+      }
+    } catch (error) {
+      setLoading(false);
+      Toast.show({
+        type: 'error',
+        text1: 'Lỗi mạng, hãy thử lại',
+      });
+      // console.error('Server response:', error.response);
+      // console.error('Status code:', error.response.status);
+      console.error('Data:', error.response.data);
+    }
+  };
+
   function MyTabBar({state, descriptors, navigation, position}) {
     return (
       <ScrollView
@@ -195,26 +350,33 @@ const SpecifiedCampaign = ({route}) => {
           paddingVertical: 15,
           alignItems: 'center',
         }}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
+        <TouchableOpacity
+          style={{paddingVertical: 5, paddingHorizontal: 2}}
+          onPress={() => navigation.goBack()}>
           <FontAwesome6 name="arrow-left-long" size={15} color="white" />
         </TouchableOpacity>
         <Text
           style={{
             color: 'white',
             fontSize: 16,
-            paddingLeft: 30,
+            paddingLeft: 40,
             fontWeight: '600',
           }}>
           Thông tin chiến dịch
         </Text>
         <View style={{flexDirection: 'row'}}>
-          <MaterialCommunityIcons name="pencil" size={17} color="white" />
-          <MaterialCommunityIcons
-            name="delete-outline"
-            size={17}
-            color="white"
-            style={{paddingLeft: 15}}
-          />
+          <TouchableOpacity style={{paddingVertical: 5, paddingHorizontal: 10}}>
+            <MaterialIcons name="group" size={17} color="white" />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={{paddingVertical: 5, paddingHorizontal: 5}}
+            onPress={() => setVisibleModalDelete(true)}>
+            <MaterialCommunityIcons
+              name="delete-outline"
+              size={17}
+              color="white"
+            />
+          </TouchableOpacity>
         </View>
       </View>
       <View
@@ -234,7 +396,7 @@ const SpecifiedCampaign = ({route}) => {
         </Text>
         <TextInput
           style={styles.input}
-          onChangeText={(text) => setInputName(text)}
+          onChangeText={text => setInputName(text)}
           value={inputName}
           placeholder="Nhập tên chiến dịch"
           placeholderTextColor="white"
@@ -336,13 +498,78 @@ const SpecifiedCampaign = ({route}) => {
             alignItems: 'center',
             borderRadius: 15,
           }}
-          onPress={() => handleFixingCampaign()}
-          >
-          <Text style={{color: 'white', fontSize: 15, fontWeight: 'bold'}}>
-            Lưu thay đổi
-          </Text>
+          onPress={() => handleFixingCampaign()}>
+          {loading ? (
+            <ActivityIndicator size="small" color="white" />
+          ) : (
+            <Text style={{color: 'white', fontSize: 15, fontWeight: 'bold'}}>
+              Lưu thay đổi
+            </Text>
+          )}
         </TouchableOpacity>
       </View>
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={visibleModalDelete}
+        onRequestClose={() => {}}>
+        <StatusBar barStyle="light-content" backgroundColor="rgba(0,0,0,0.5)" />
+        <View style={styles.centeredViewChanging}>
+          <View style={styles.modalViewChanging}>
+            <Text style={styles.titleLoginRequired}>
+              Bạn chắc chắn muốn xóa chiến dịch này chứ ?
+            </Text>
+            <Text style={styles.descriptionLoginRequired}>
+              Hãy cẩn thận với lựa chọn, nếu không bạn sẽ mất hết dữ liệu liên
+              quan !
+            </Text>
+            <TouchableOpacity
+              onPress={handleDelete}
+              style={{
+                width: '100%',
+                paddingVertical: 7,
+                backgroundColor: 'rgb(37, 41, 109)',
+                marginTop: 10,
+                justifyContent: 'center',
+                alignItems: 'center',
+                borderRadius: 10,
+              }}>
+              {loading ? (
+                <ActivityIndicator size="small" color="white" />
+              ) : (
+                <Text
+                  style={{
+                    color: 'white',
+                    fontWeight: '600',
+                    fontSize: isSmallScreen ? 13 : 18,
+                  }}>
+                  Đồng ý
+                </Text>
+              )}
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => setVisibleModalDelete(false)}
+              style={{
+                width: '100%',
+                paddingVertical: 7,
+                marginTop: 10,
+                justifyContent: 'center',
+                alignItems: 'center',
+                borderRadius: 10,
+                borderWidth: 0.3,
+              }}>
+              <Text
+                style={{
+                  color: 'black',
+                  fontWeight: '600',
+                  fontSize: isSmallScreen ? 13 : 18,
+                }}>
+                Hủy
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
     //   </View>
   );
@@ -411,5 +638,44 @@ const styles = StyleSheet.create({
   inputSearchStyle: {
     height: 40,
     fontSize: 16,
+  },
+  centeredViewChanging: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    zIndex: 1000,
+  },
+  modalViewChanging: {
+    position: 'relative',
+    margin: 20,
+    backgroundColor: 'white',
+    borderRadius: 20,
+    width: widthDimension * 0.9,
+    paddingHorizontal: 20,
+    paddingVertical: 20,
+    shadowColor: '#000',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  titleLoginRequired: {
+    fontSize: isSmallScreen ? 13 : 15,
+    color: 'black',
+    fontWeight: '500',
+    textAlign: 'center',
+  },
+  descriptionLoginRequired: {
+    fontSize: isSmallScreen ? 10 : 15,
+    color: 'black',
+    fontWeight: '300',
+    textAlign: 'center',
+    paddingVertical: 10,
   },
 });

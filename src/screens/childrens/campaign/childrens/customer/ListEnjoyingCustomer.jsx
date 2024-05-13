@@ -20,7 +20,7 @@ import {useDispatch, useSelector} from 'react-redux';
 import Octicons from 'react-native-vector-icons/Octicons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {UPDATE_LOGOUT_REQUIRED} from '../../../../../../../../../slices/auth/authSlice';
+import { UPDATE_LOGOUT_REQUIRED } from '../../../../../../slices/auth/authSlice';
 import Entypo from 'react-native-vector-icons/Entypo';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
@@ -31,27 +31,26 @@ import DatePicker from 'react-native-date-picker';
 import {launchCamera, launchImageLibrary} from 'react-native-image-picker';
 import {useNavigation} from '@react-navigation/native';
 import {CheckBox, Layout, Text as KittenText} from '@ui-kitten/components';
-import FontAwesome6 from 'react-native-vector-icons/FontAwesome6';
-import LinearGradient from 'react-native-linear-gradient';
 import BottomSheet, {
   BottomSheetBackdrop,
   BottomSheetModal,
   BottomSheetScrollView,
 } from '@gorhom/bottom-sheet';
-import LoginSession from '../../../../../../../../auth/required/LoginSession';
+import LoginSession from '../../../../../auth/required/LoginSession';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import Clipboard from '@react-native-clipboard/clipboard';
 import Feather from 'react-native-vector-icons/Feather';
-import Animated, {
-  FadeInUp,
-  BounceIn,
-  FadeInLeft,
-} from 'react-native-reanimated';
+import Animated, {FadeInUp,BounceIn,FadeInLeft} from 'react-native-reanimated';
+import LottieView from "lottie-react-native";
+
 
 const heightDimension = Dimensions.get('screen').height;
 const widthDimension = Dimensions.get('screen').width;
-const {width} = Dimensions.get('window');
-const isSmallScreen = width < 375;
+const widthDimensions = Dimensions.get('screen').width;
+const heightDimensions = Dimensions.get('screen').height;
+
+const { width } = Dimensions.get('window');
+const isSmallScreen = width < 375; 
 const dataActionCaring = [
   {label: 'Gọi điện', id: 'call'},
   {label: 'Nhắn tin', id: 'message'},
@@ -60,7 +59,9 @@ const dataActionCaring = [
   {label: 'Khác', id: 'other'},
 ];
 
-const HistoryRequests = () => {
+const OrderManagement = ({route}) => {
+  const {item} = route.params;
+  const userData = useSelector(state => state.user.user);
   const navigation = useNavigation();
   const bottomSheetModalRef = useRef(null);
   const bottomSheetCustomerGroupRef = useRef(null);
@@ -98,7 +99,7 @@ const HistoryRequests = () => {
         weighty: 0,
       };
       setLoadingAddGroup(false);
-      setDataCustomerGroup([newDataGroup, ...dataCustomerGroup]);
+      setDataCustomerGroup([newDataGroup,...dataCustomerGroup]);
     } else {
       setLoadingAddGroup(false);
     }
@@ -117,7 +118,8 @@ const HistoryRequests = () => {
   const handleSheetHistoryClosing = useCallback(() => {
     setModalHistoryChoosing(true);
   }, []);
-  const handleSheetChanges = useCallback(index => {}, []);
+  const handleSheetChanges = useCallback(index => {
+  }, []);
   const snapPoints = useMemo(() => ['25%', '30%'], []);
   const snapPointsCustomerGroup = useMemo(() => ['40%', '50%'], []);
 
@@ -141,7 +143,7 @@ const HistoryRequests = () => {
       `${network}/getListCustomerHistoriesAPI`,
       {
         token: token,
-        limit: 20,
+        limit: 200,
         page: 1,
         id_customer: customer.id,
       },
@@ -337,9 +339,11 @@ const HistoryRequests = () => {
         });
       } else {
         setLoading(false);
+
       }
     } else {
       setLoading(false);
+
     }
   };
   const handleAddCaringModal = async () => {
@@ -368,19 +372,21 @@ const HistoryRequests = () => {
   };
   useEffect(() => {
     const getData = async () => {
-      const response = await axios.post(`${network}/getHistoryWarehouseProductAPI`, {
+      const response = await axios.post(`${network}/getListCustomerCampaignAPI`, {
         token: token,
-        limit: 30,
+        limit: 200,
         page: 1,
+        id: item.id
       });
       if (response.data && response.data.code === 0) {
         setDataCustomer(response.data.listData);
-        console.log(response.data.listData);
       } else {
         await AsyncStorage.removeItem('user_data');
         await AsyncStorage.removeItem('token');
         dispatch(UPDATE_LOGOUT_REQUIRED());
         setShowLoginModal(true);
+              console.log(response.data)
+
       }
     };
     getData();
@@ -635,47 +641,73 @@ const HistoryRequests = () => {
   return (
     <>
       <TouchableWithoutFeedback onPress={() => setMenuVisible(false)}>
-        <View style={styles.container} >
-          <View style={styles.headerContainer}>
-            <TouchableOpacity
-              style={{width: 30, height: 20, alignItems: 'center'}}
-              onPress={() => navigation.goBack()}>
-              <FontAwesome6 name="arrow-left-long" size={20} color="black" />
-            </TouchableOpacity>
-            <View style={styles.titleContainer}>
-              <Text
-                style={{
-                  color: 'black',
-                  paddingRight: 15,
-                  fontWeight: '600',
-                  fontSize: 18,
-                }}>
-                Lịch sử xuất nhập hàng
-              </Text>
-            </View>
-          </View>
-          <View style={{}}></View>
+        {/* <BottomSheetModalProvider> */}
+        <View style={styles.container}>
+            <View style={styles.headerContainer}>
+        <TouchableOpacity
+          style={styles.headerButtonContainer}
+          onPress={() => navigation.goBack()}>
+          <FontAwesome name="arrow-left" size={15} color="rgb(37, 41, 109)" />
+        </TouchableOpacity>
+
+        {loginChecking ? (
+          <TouchableOpacity onPress={() => console.log(userData.avatar)}>
+            <Image
+            source={{uri: userData.avatar}}
+            alt=""
+            style={[
+              styles.imageContainer,
+              {
+                borderRadius: 25,
+                resizeMode: 'contain',
+                backgroundColor: 'white',
+              },
+            ]}
+          />
+          </TouchableOpacity>
+        ) : (
+          <Image
+            source={avatarNull}
+            alt=""
+            style={[
+              styles.imageContainer,
+              {
+                borderRadius: 25,
+                resizeMode: 'contain',
+                backgroundColor: 'white',
+              },
+            ]}
+          />
+        )}
+      </View>
+      
+<LottieView
+      source={require("../../../../../animations/lotties/campaignLotties.json")}
+      style={{width: 120, height:120,resizeMode:'cover',alignSelf:'flex-end',position:'absolute',top: '0%'}}
+      autoPlay
+      loop
+    />
           <View style={styles.searchSpecifiedContainer}>
             <View style={styles.searchContainer}>
               <TextInput
                 style={styles.inputSearching}
                 // onChangeText={onChangeNumber}
                 // value={number}
-                placeholder="Tìm kiếm nhanh..."
+                placeholder="Tìm kiếm khách hàng ..."
                 keyboardType="numeric"
-                placeholderTextColor="black"
+                placeholderTextColor="gray"
               />
 
               <View style={styles.searchIconContainer}>
-                <Octicons name="search" size={20} color="gray" />
+                <Octicons name="search" size={isSmallScreen ? 15 : 20} color="gray" />
               </View>
-              {/* <View style={styles.filterIconContainer}>
+              <View style={styles.filterIconContainer}>
                 <MaterialCommunityIcons
                   name="filter-menu"
                   size={26}
                   color="white"
                 />
-              </View> */}
+              </View>
               {/* {enableSearching && <View style={styles.searchResultsContainer}>
             <View style={styles.searchResult}>
               {dataHeaderSearch.length > 0 && <View
@@ -737,100 +769,54 @@ const HistoryRequests = () => {
           </View>} */}
             </View>
           </View>
-          <ScrollView style={styles.scrollViewJobSummary} horizontal>
-            <LinearGradient  colors={['#00FFFF', '#17C8FF', '#329BFF', '#4C64FF', '#6536FF', '#8000FF']}
-                    start={{ x: 0.0, y: 1.0 }} end={{ x: 1.0, y: 1.0 }}
-                     
-              style={[
-                styles.jobSummarySpecified,
-                {backgroundColor: 'rgb(243, 211, 107)',width: 300},
-              ]}>
-                
-              <View>
-                <View
-                  style={{
-                    width: 50,
-                    height: 50,
-                    borderRadius: 25,
-                    backgroundColor: 'white',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}>
-                  <MaterialCommunityIcons
-                    name="truck-delivery"
-                    size={30}
-                    color="#329BFF"
-                  />
-                </View>
-                <Text
-                  style={{
-                    color: 'white',
-                    fontSize: 25,
-                    fontWeight: 'bold',
-                    marginTop: 10,
-                  }}>
-                  {1200}
-                </Text>
-              </View>
+          <View
+            style={{
+              flexDirection: 'row',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+            }}>
+            <Text
+              style={{
+                paddingTop: 20,
+                color: 'black',
+                fontWeight: '700',
+                fontSize: isSmallScreen ? 17 :21,
+              }}>
+              Danh sách tham gia
+            </Text>
+            {/* <TouchableOpacity
+              style={{
+                marginTop: 20,
+
+                // paddingBottom: 10,
+                flexDirection: 'row',
+                backgroundColor: 'rgb(37, 41, 109)',
+                paddingVertical: 5,
+                paddingHorizontal: 10,
+                borderRadius: 10,
+              }}>
+              <AntDesign
+                size={18}
+                color="white"
+                name="adduser"
+                style={{paddingRight: 7}}
+              />
               <Text
                 style={{
                   color: 'white',
-                  fontSize: 13,
-                  fontWeight: 'bold',
-                  marginTop: 5,
+                  fontWeight: '500',
+                  fontSize: isSmallScreen ? 17 :18,
                 }}>
-                Đơn đang giao
+                Tạo mới
               </Text>
-            </LinearGradient>
-            <View
-              style={[
-                styles.jobSummarySpecified,
-                {backgroundColor: 'rgb(243, 211, 107)',marginLeft: 10,width: 300},
-              ]}>
-              <View>
-                <View
-                  style={{
-                    width: 50,
-                    height: 50,
-                    borderRadius: 25,
-                    backgroundColor: 'white',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}>
-                  <MaterialCommunityIcons
-                    name="truck-delivery"
-                    size={30}
-                    color="rgb(243, 211, 107)"
-                  />
-                </View>
-                <Text
-                  style={{
-                    color: 'white',
-                    fontSize: 25,
-                    fontWeight: 'bold',
-                    marginTop: 10,
-                  }}>
-                  {1200}
-                </Text>
-              </View>
-              <Text
-                style={{
-                  color: 'white',
-                  fontSize: 13,
-                  fontWeight: 'bold',
-                  marginTop: 5,
-                }}>
-                Đơn đang giao
-              </Text>
-            </View>
-            
-            
-          </ScrollView>
+            </TouchableOpacity> */}
+          </View>
           <ScrollView style={{flex: 1}}>
             {dataCustomer.length > 0 ? (
               dataCustomer.map((customer, index) => (
                 <Animated.View
-                  entering={FadeInLeft.duration(500 + index * 200)}
+                                           entering={FadeInLeft.duration(500 + (index * 200))}
+
                   style={{
                     flexDirection: 'row',
                     justifyContent: 'space-between',
@@ -842,13 +828,12 @@ const HistoryRequests = () => {
                   }}
                   key={index}>
                   <View style={{flexDirection: 'row'}}>
-                    <Image
-                      alt=""
+                    <Image alt=""
                       source={
-                        customer.avatar && customer.avatar.startsWith('http')
-                          ? {uri: customer.avatar}
-                          : require('../../../../../../../assets/avatar-null.png')
-                      }
+    customer.avatar && customer.avatar.startsWith('http')
+      ? { uri: customer.avatar }
+      : require('../../../../assets/avatar-null.png')
+  }
                       style={{
                         // alignItems: 'center',
                         // justifyContent: 'center',
@@ -864,11 +849,7 @@ const HistoryRequests = () => {
                     />
                     <View style={{paddingLeft: 20}}>
                       <Text style={{color: 'black'}}>
-                        <Text
-                          style={{
-                            fontWeight: 'bold',
-                            fontSize: isSmallScreen ? 15 : 20,
-                          }}>
+                        <Text style={{fontWeight: 'bold', fontSize: isSmallScreen ? 15 : 20}}>
                           {customer.full_name}
                         </Text>
                       </Text>
@@ -898,20 +879,21 @@ const HistoryRequests = () => {
                         style={{paddingRight: 20}}
                       />
                     </TouchableOpacity>
-                    <TouchableOpacity onPress={() => console.log(customer.product)}>
+                    <TouchableOpacity>
                       <Entypo
                         size={20}
                         color="black"
                         name="dots-three-horizontal"
                         style={{paddingRight: 10, position: 'relative'}}
+                        onPress={() => handleMore(customer)}
                       />
                     </TouchableOpacity>
                   </View>
                 </Animated.View>
               ))
             ) : (
-              <View style={{flex: 1, marginBottom: heightDimension * 0.05}}>
-                <SkeletonPlaceholder borderRadius={4}>
+              <View style={{flex: 1, marginBottom: heightDimension * 0.05,marginTop: 20}}>
+                <SkeletonPlaceholder borderRadius={4} paddingTop={20}>
                   <SkeletonPlaceholder.Item flexDirection="column">
                     <SkeletonPlaceholder.Item flexDirection="row">
                       <SkeletonPlaceholder.Item
@@ -1541,8 +1523,7 @@ const HistoryRequests = () => {
             }}>
             Lịch sử chăm sóc khách hàng : {customerChoosing.full_name}
           </Text>
-          <Image
-            alt=""
+          <Image alt=""
             source={{uri: customerChoosing.avatar}}
             style={{
               width: 100,
@@ -1971,8 +1952,7 @@ const HistoryRequests = () => {
             }}>
             Chăm sóc khách hàng : {customerChoosing.full_name}
           </Text>
-          <Image
-            alt=""
+          <Image alt=""
             source={{uri: customerChoosing.avatar}}
             style={{
               width: 100,
@@ -2420,8 +2400,7 @@ const HistoryRequests = () => {
                 </Text>
                 {selectedImageFixing ? (
                   <TouchableOpacity onPress={() => openImagePickerFixing()}>
-                    <Image
-                      alt=""
+                    <Image alt=""
                       source={{uri: selectedImageFixing}}
                       style={{width: '100%', height: 60}}
                       resizeMode="contain"
@@ -2429,8 +2408,7 @@ const HistoryRequests = () => {
                   </TouchableOpacity>
                 ) : (
                   <TouchableOpacity onPress={() => openImagePickerFixing()}>
-                    <Image
-                      alt=""
+                    <Image alt=""
                       source={{uri: dataCustomerMore.avatar}}
                       style={{width: '100%', height: 60}}
                       resizeMode="contain"
@@ -2520,22 +2498,13 @@ const HistoryRequests = () => {
   );
 };
 
-export default HistoryRequests;
+export default OrderManagement;
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  headerContainer: {
-    flexDirection: 'row',
-    paddingVertical: 5,
-  },
   container: {
     flex: 1,
     backgroundColor: 'white',
-    paddingTop: heightDimension * 0.02,
+    paddingTop: heightDimension * 0.05,
     paddingHorizontal: widthDimension * 0.03,
   },
   searchSpecifiedContainer: {
@@ -2560,15 +2529,15 @@ const styles = StyleSheet.create({
     shadowColor: '#52006A',
   },
   inputSearching: {
-    height: 60,
+    height:  isSmallScreen ? 50 : 60,
     padding: 10,
     marginTop: 5,
     width: '100%',
     borderRadius: 20,
-    fontSize: 18,
+    fontSize: isSmallScreen ? 12 : 18,
     paddingLeft: 50,
     color: 'gray',
-    backgroundColor: 'rgb(246, 246, 246)',
+    backgroundColor: 'rgb(249, 249, 251)',
   },
   inputSearchingCaring: {
     height: 50,
@@ -2604,8 +2573,8 @@ const styles = StyleSheet.create({
     position: 'absolute',
     right: 0,
     top: 0,
-    width: 70,
-    height: 70,
+    width: isSmallScreen ? 60 : 70,
+    height: isSmallScreen ? 60 : 70,
     backgroundColor: 'rgb(37, 41, 109)',
     borderRadius: 50,
     alignItems: 'center',
@@ -2685,6 +2654,12 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     paddingLeft: 10,
     fontSize: 17,
+  },
+   headerContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+        paddingHorizontal: widthDimensions * 0.05,
+
   },
   dropdown: {
     height: 50,
@@ -2795,39 +2770,5 @@ const styles = StyleSheet.create({
     marginTop: 10,
     marginLeft: 10,
     width: '66%',
-  },
-  scrollViewJobSummary: {
-    paddingTop: 20,
-    maxHeight: 200,
-    flex: 1
-  },
-  jobSummarySpecified: {
-    width: 100,
-    height: 150,
-    borderRadius: 15,
-    paddingTop: 10,
-    paddingHorizontal: 10,
-    justifyContent: 'space-between',
-    paddingBottom: 10,
-  },
-  heading: {
-    fontSize: 13,
-    fontWeight: '500',
-    color: 'white',
-    paddingLeft: 10,
-  },
-  card: {
-    backgroundColor: 'rgb(57, 55, 142)',
-    borderRadius: 8,
-    paddingVertical: 10,
-    paddingHorizontal: 10,
-    width: '100%',
-  },
-  shadowProp: {
-    shadowColor: '#171717',
-    shadowOffset: {width: -2, height: 4},
-    shadowOpacity: 0.2,
-    shadowRadius: 3,
-    elevation: 3,
   },
 });

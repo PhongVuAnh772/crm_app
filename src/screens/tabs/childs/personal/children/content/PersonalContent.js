@@ -342,7 +342,7 @@ alt=""
           <Text style={styles.titleFirst}>Cá nhân</Text>
         </View>
 
-        <View
+        {/* <View
           style={[
             styles.infoContainerBottom,
             {borderTopLeftRadius: 10, borderTopRightRadius: 10},
@@ -364,7 +364,7 @@ alt=""
               color="rgb(78, 78, 80)"
             />
           </View>
-        </View>
+        </View> */}
         <TouchableOpacity
           style={[styles.infoContainerBottom]}
           onPress={() => {

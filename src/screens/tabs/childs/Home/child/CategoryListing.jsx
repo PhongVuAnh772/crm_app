@@ -41,7 +41,7 @@ const CategoryListing = () => {
 
   return (
     <>
-      <Text style={styles.textTitle}>Bạn muốn chọn loại sản phẩm gì ?</Text>
+      <Text style={styles.textTitle}>Danh mục sản phẩm</Text>
       <ScrollView
         showsVerticalScrollIndicator={false}
         showsHorizontalScrollIndicator={false}
@@ -147,6 +147,7 @@ const styles = StyleSheet.create({
     textAlign: 'left',
     color: 'black',
     fontWeight: 'bold',
+    textAlign:'center'
   },
   textTitle: {
     color: 'black',

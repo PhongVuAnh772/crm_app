@@ -1,5 +1,5 @@
 import React, {useState, useEffect} from 'react';
-import {NavigationContainer} from '@react-navigation/native';
+import {NavigationContainer, useNavigation} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import {
   View,
@@ -10,6 +10,8 @@ import {
   Dimensions,
   StatusBar,
   TouchableOpacity,
+  PermissionsAndroid,
+  Linking,
 } from 'react-native';
 import TabNavigators from './src/screens/tabs/TabNavigators';
 import logoLoading from './constants/logo/phoenix-logo-other.png';
@@ -27,6 +29,8 @@ import Toast, {BaseToast, ErrorToast} from 'react-native-toast-message';
 import {UPDATE_USER_DATA} from './slices/users/userSlice';
 import SpecifiedCategory from './src/screens/childrens/SpecifiedCategory/SpecifiedCategory';
 import CampaignStacks from './src/screens/childrens/campaign/parents/stacks/CampaignStack';
+import ListEnjoyingCustomer from './src/screens/childrens/campaign/childrens/customer/ListEnjoyingCustomer';
+import SettingNotificationScreen from './src/screens/notifications/children/SettingNotificationScreen';
 import Animated, {
   useSharedValue,
   useAnimatedProps,
@@ -39,21 +43,108 @@ import HistoryRequests from './src/screens/tabs/stacks/childrens/CustomerManagem
 import ListingRequests from './src/screens/tabs/stacks/childrens/CustomerManagement/children/warehouse/children/ListingRequests';
 import ListingGoods from './src/screens/tabs/stacks/childrens/CustomerManagement/children/warehouse/children/ListingGoods';
 import ImportingGoods from './src/screens/tabs/stacks/childrens/CustomerManagement/children/warehouse/children/ImportingGoods';
-import { colorConstants } from './constants/colors/colors';
+import NotificationScreen from './src/screens/notifications/NotificationScreen';
+import {colorConstants} from './constants/colors/colors';
+import messaging from '@react-native-firebase/messaging';
+import axios from 'axios';
+import {
+  getFcmToken,
+  registerListenerWithFCM,
+  registerAppWithFCM,
+  checkApplicationNotificationPermission,
+} from './src/helpers';
 const Stack = createNativeStackNavigator();
 
 const widthDimension = Dimensions.get('screen').width;
 const heightDimension = Dimensions.get('screen').height;
 
 function App(): React.JSX.Element {
+  //  Alias: AndroidDebugKey
+  // MD5: 2D:6A:D3:44:E0:0A:BF:21:94:59:4C:6C:31:D5:A8:B1
+  // SHA1: 4A:D1:13:CA:C5:C8:86:E6:CF:22:40:32:82:CC:CE:C8:35:C9:BE:8D
+  // SHA-256: 36:8D:99:52:72:C3:57:60:5D:FE:94:BA:2E:A1:F1:2F:B4:DA:8B:C5:C0:06:FB:DA:4B:2C:FE:D5:EA:FE:FA:8B
+  const network = useSelector(state => state.network.ipv4);
+  const navigation = useNavigation()
+  useEffect(() => {
+    const fetchData = async () => {
+      const getNotification = await AsyncStorage.getItem('get_notification');
+      
+      console.log(getNotification)
+      if (getNotification === 'yes') {
+        const unsubscribe = registerListenerWithFCM();
+        return unsubscribe;
+      } else if (getNotification === 'no') {
+        return;
+      } else if (getNotification === null) {
+        await AsyncStorage.setItem('get_notification', 'yes');
+        const unsubscribe = registerListenerWithFCM();
+        return unsubscribe;
+      }
+    };
+
+    fetchData();
+  }, []);
+ 
+
+  useEffect(() => {
+    const getTokenDevice = async () => {
+      const storedTokenDevice = await AsyncStorage.getItem('token_device');
+      await checkApplicationNotificationPermission();
+      await registerAppWithFCM();
+      if (storedTokenDevice === null) {
+        PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS,
+        );
+        const authStatus = await messaging().requestPermission();
+        const enabled =
+          authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
+          authStatus === messaging.AuthorizationStatus.PROVISIONAL;
+        if (enabled) {
+          console.log('Authorization status:', authStatus);
+          const tokenDevice = await messaging().getToken();
+          if (tokenDevice) {
+            const response = await axios.post(`${network}/saveTokenDeviceAPI`, {
+              token_device: tokenDevice,
+            });
+            if (response.data && response.data.code === 0) {
+              await AsyncStorage.setItem('token_device', tokenDevice);
+              console.log(
+                'Token device đã được lưu, token device :' + tokenDevice,
+              );
+            }
+          }
+        }
+      } else {
+        console.log(
+          'Token device đã được lưu, token device :' + storedTokenDevice,
+        );
+      }
+    };
+    getTokenDevice();
+  }, []);
+  const token = useSelector(state => state.auth.token);
+
+  useEffect(() => {
+    const getLastLogin = async () => {
+      console.log('Đã cập nhật đăng nhập lần cuối');
+
+      if (token === null) {
+        return;
+      } else {
+        const response = await axios.post(`${network}/updateLastLoginAPI`, {
+          token: token,
+        });
+        if (response.data && response.data.code === 0) {
+          return;
+        }
+      }
+    };
+    getLastLogin();
+  }, []);
   const r = useSharedValue(0);
   const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
   const toastConfig = {
-    /*
-    Overwrite 'success' type,
-    by modifying the existing `BaseToast` component
-  */
     success: (props: any) => (
       <BaseToast
         {...props}
@@ -69,10 +160,6 @@ function App(): React.JSX.Element {
         }}
       />
     ),
-    /*
-    Overwrite 'error' type,
-    by modifying the existing `ErrorToast` component
-  */
     error: props => (
       <ErrorToast
         {...props}
@@ -84,13 +171,7 @@ function App(): React.JSX.Element {
         }}
       />
     ),
-    /*
-    Or create a completely new type - `tomatoToast`,
-    building the layout from scratch.
 
-    I can consume any custom `props` I want.
-    They will be passed when calling the `show` method (see below)
-  */
     tomatoToast: ({text1, props}) => (
       <View style={{height: 60, width: '100%', backgroundColor: 'tomato'}}>
         <Text>{text1}</Text>
@@ -99,6 +180,7 @@ function App(): React.JSX.Element {
     ),
   };
   const dispatch = useDispatch();
+
   useEffect(() => {
     const getToken = async () => {
       try {
@@ -116,25 +198,26 @@ function App(): React.JSX.Element {
 
     getToken();
   }, []);
-  const [completeNavigating,setCompleteNavigating] = useState(true)
+  const [completeNavigating, setCompleteNavigating] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
   const [handlePressCompleted, setHandlePressCompleted] = useState(false);
 
   useEffect(() => {
-            setIsLoading(false);
+    setIsLoading(false);
 
     setTimeout(() => {
       handlePress();
       setHandlePressCompleted(true);
     }, 3000);
   }, []);
-  const [statusBarColor, setStatusBarColor] = useState(colorConstants.primaryColor);
+  const [statusBarColor, setStatusBarColor] = useState(
+    colorConstants.primaryColor,
+  );
   const animatedProps = useAnimatedProps(() => ({
     r: withTiming(r.value),
   }));
 
   const handlePress = () => {
-
     setStatusBarColor('white');
     const radius =
       Math.sqrt(Math.pow(widthDimension, 2) + Math.pow(heightDimension, 2)) / 2;
@@ -142,21 +225,23 @@ function App(): React.JSX.Element {
   };
 
   useEffect(() => {
-    // Kiểm tra xem handlePress đã hoàn thành hay chưa
     if (handlePressCompleted) {
-      // Nếu đã hoàn thành, đặt isLoading thành false
-      setCompleteNavigating(false);
+      // setCompleteNavigating(false);
+      navigation.navigate('HomeTabNavigators')
     }
   }, [handlePressCompleted]);
   return (
     <>
       <StatusBar barStyle="light-content" backgroundColor={statusBarColor} />
-      <NavigationContainer>
+      
         <Stack.Navigator
           screenOptions={{
             headerShown: false,
           }}>
-          {completeNavigating ? (
+          {/* {completeNavigating ? (
+            
+          ) : (
+            <> */}
             <Stack.Screen name="Loading">
               {() => (
                 <View
@@ -168,7 +253,8 @@ function App(): React.JSX.Element {
                   }}>
                   <Image
                     source={logoLoading}
-                    style={styles.logoLoadingAssets} alt=""
+                    style={styles.logoLoadingAssets}
+                    alt=""
                   />
                   <Svg style={styles.svg}>
                     <AnimatedCircle
@@ -178,16 +264,25 @@ function App(): React.JSX.Element {
                       animatedProps={animatedProps}
                     />
                   </Svg>
-                  {isLoading && <ActivityIndicator size="large" color="white" />}
+                  {isLoading && (
+                    <ActivityIndicator size="large" color="white" />
+                  )}
                   <Text style={styles.loadingText}>PHOENIX CRM</Text>
                 </View>
               )}
             </Stack.Screen>
-          ) : (
-            <>
               <Stack.Screen
                 name="HomeTabNavigators"
                 component={TabNavigators}
+              />
+              <Stack.Screen
+                name="NotificationScreen"
+                component={NotificationScreen}
+                options={{
+                  presentation: 'modal',
+                  animationTypeForReplace: 'push',
+                  animation: 'slide_from_bottom',
+                }}
               />
               <Stack.Screen
                 name="Login"
@@ -216,7 +311,7 @@ function App(): React.JSX.Element {
                   animation: 'slide_from_right',
                 }}
               />
-              
+
               <Stack.Screen
                 name="ForgetPasswordIndex"
                 component={ForgetPasswordIndex}
@@ -248,9 +343,8 @@ function App(): React.JSX.Element {
                 name="SuccessForgetPassword"
                 component={SuccessForgetPassword}
               />
-              <Stack.Screen name="CampaignStacks"
-                component={CampaignStacks}/>
-                <Stack.Screen
+              <Stack.Screen name="CampaignStacks" component={CampaignStacks} />
+              <Stack.Screen
                 name="SpecifiedCampaign"
                 component={SpecifiedCampaign}
                 options={{
@@ -259,7 +353,7 @@ function App(): React.JSX.Element {
                   animation: 'slide_from_right',
                 }}
               />
-               <Stack.Screen
+              <Stack.Screen
                 name="CreatingCampaign"
                 component={CreatingCampaign}
                 options={{
@@ -304,10 +398,38 @@ function App(): React.JSX.Element {
                   animation: 'slide_from_right',
                 }}
               />
-            </>
-          )}
+              <Stack.Screen
+                name="ListEnjoyingCustomer"
+                component={ListEnjoyingCustomer}
+                options={{
+                  presentation: 'modal',
+                  animationTypeForReplace: 'pop',
+                  animation: 'slide_from_right',
+                }}
+              />
+              <Stack.Screen
+                name="SettingNotificationScreen"
+                component={SettingNotificationScreen}
+                options={{
+                  presentation: 'modal',
+                  animationTypeForReplace: 'pop',
+                  animation: 'slide_from_right',
+                }}
+              />
+              {/* 
+              
+              <Stack.Screen
+                name="ListCampaignIndex"
+                component={ListCampaignIndex}
+                options={{
+                  presentation: 'modal',
+                  animationTypeForReplace: 'pop',
+                  animation: 'slide_from_right',
+                }}
+              /> */}
+            {/* </> */}
+          {/* )} */}
         </Stack.Navigator>
-      </NavigationContainer>
       <Toast config={toastConfig} />
     </>
   );

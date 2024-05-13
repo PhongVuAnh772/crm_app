@@ -14,8 +14,17 @@ import {ThemeProvider} from 'react-native-elements';
 import {BottomSheetModalProvider} from '@gorhom/bottom-sheet';
 import * as eva from '@eva-design/eva';
 import {ApplicationProvider, Layout, Text} from '@ui-kitten/components';
+import { linking } from './src/helpers/deep_linking';
+import {NavigationContainer, useNavigation} from '@react-navigation/native';
+import { Linking, ActivityIndicator } from 'react-native';
+import messaging from '@react-native-firebase/messaging';
 
-const ReduxApp = () => (
+ messaging().setBackgroundMessageHandler(async remoteMessage => {
+  console.log('Message handled in the background!', remoteMessage);
+});
+
+const ReduxApp = () => 
+  (
   <GestureHandlerRootView style={{flex: 1}}>
     <Provider store={store}>
       <SafeAreaProvider>
@@ -23,7 +32,11 @@ const ReduxApp = () => (
           <PaperProvider>
             <BottomSheetModalProvider>
               <ApplicationProvider {...eva} theme={eva.dark}>
-                <App />
+                <NavigationContainer
+                  linking={linking}
+                  fallback={<ActivityIndicator animating />}>
+                  <App />
+                </NavigationContainer>
               </ApplicationProvider>
             </BottomSheetModalProvider>
           </PaperProvider>

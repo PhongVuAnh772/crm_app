@@ -34,6 +34,8 @@ import * as Burnt from 'burnt';
 import {CLEAR_USER_DATA} from '../../../../../../../slices/users/userSlice';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import CheckBox from '@react-native-community/checkbox';
+import { companyInfo } from '../../../../../../../constants/company/companyInfo';
+import { colorConstants } from '../../../../../../../constants/colors/colors';
 
 const {width} = Dimensions.get('window');
 const isSmallScreen = width < 375;
@@ -340,7 +342,7 @@ const PersonalContent = () => {
             style={styles.iconAffiliateIconContainer}
             onPress={() =>
               Linking.openURL(
-                'https://www.facebook.com/ZIKIIChamTayBayNamTuyetZIKII',
+                companyInfo.linkFacebook,
               )
             }>
             <View style={styles.iconAffiliateIcon}>
@@ -350,7 +352,8 @@ const PersonalContent = () => {
           </TouchableOpacity>
           <TouchableOpacity style={styles.iconAffiliateIconContainer} onPress={() =>
               Linking.openURL(
-                'https://www.instagram.com/explore/locations/100854702731966/zikii-tng-chm-tay-bay-nam/i',
+                                companyInfo.linkInstagram === "" ? 'https://www.instagram.com/' : companyInfo.linkInstagram
+,
               )
           }>
             <View style={styles.iconAffiliateIcon}>
@@ -360,7 +363,7 @@ const PersonalContent = () => {
           </TouchableOpacity>
           <TouchableOpacity style={styles.iconAffiliateIconContainer} onPress={() =>
               Linking.openURL(
-                'https://www.youtube.com/@tuyetzikii',
+                companyInfo.linkYouTube === "" ? 'https://www.youtube.com' : companyInfo.linkYouTube,
               )
           }>
             <View style={styles.iconAffiliateIcon}>
@@ -370,7 +373,8 @@ const PersonalContent = () => {
           </TouchableOpacity>
           <TouchableOpacity style={styles.iconAffiliateIconContainer}  onPress={() =>
               Linking.openURL(
-                'https://www.tiktok.com/@bangvananh?lang=en',
+                                companyInfo.linkTiktok === "" ? 'https://www.tiktok.com' : companyInfo.linkTiktok,
+
               )
             }>
             <View style={styles.iconAffiliateIcon}>
@@ -380,7 +384,7 @@ const PersonalContent = () => {
           </TouchableOpacity>
         </View>
         <Text style={styles.textAffiliateTrendingFirst}>
-          Công ty cổ phần thương mại quốc tế HT NATURAL
+          {companyInfo.name}
         </Text>
         <Text style={styles.textAffiliateTrending}>(Phiên bản 0.0.1)</Text>
       </View>
@@ -451,7 +455,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'red',
+    backgroundColor: colorConstants.primaryColor,
     borderRadius: 20,
     alignSelf: 'center',
   },

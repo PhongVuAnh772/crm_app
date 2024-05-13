@@ -11,6 +11,8 @@ import {useNavigation} from '@react-navigation/native';
 import avatarNull from '../../../../assets/avatar-null.png'
 import Animated, {FadeInUp,BounceIn,FadeInRight} from 'react-native-reanimated';
 import { colorConstants } from '../../../../../../constants/colors/colors';
+import Toast from 'react-native-toast-message';
+
 const widthDimensions = Dimensions.get('screen').width;
 const heightDimensions = Dimensions.get('screen').height;
 const { width } = Dimensions.get('window');
@@ -79,7 +81,7 @@ const GreetingUser = () => {
           </View>
         </Animated.View>
         {/* rgb(250, 250, 252) */}
-        <Text style={styles.textTitle}>Bộ lọc công việc</Text>
+        <Text style={styles.textTitle}>Chức năng nổi bật</Text>
 
         <Animated.View 
          entering={FadeInRight.duration(500)}
@@ -115,7 +117,7 @@ const GreetingUser = () => {
                   paddingLeft: 10,
                   paddingBottom: 10,
                 }}>
-                Đào tạo
+                Tuyến dưới
               </Text>
               <Text
                 style={{
@@ -124,11 +126,17 @@ const GreetingUser = () => {
                   color: 'black',
                   paddingLeft: 10,
                 }}>
-                {isSmallScreen ? 'HT' : 'Hệ thống'} tuyến dưới
+                {isSmallScreen ? 'HT' : 'Hệ thống'} đại lý
               </Text>
             </TouchableOpacity>
           </View>
-          <View
+          <TouchableOpacity
+           onPress={() => {
+              Toast.show({
+          type: 'success',
+          text1: 'Chức năng này sẽ sớm có, hãy chờ nhé !',
+        });
+            }}
             style={{
               flexDirection: 'row',
               alignItems: 'center',
@@ -145,7 +153,7 @@ const GreetingUser = () => {
               ]}>
               <Image source={examDoing} style={styles.imageSpecified} alt=""/>
             </View>
-            <TouchableOpacity style={{justifyContent: 'space-between'}} onPress={() => console.log(userData)}>
+            <View style={{justifyContent: 'space-between'}}>
               <Text
                 style={{
                   fontSize: 13,
@@ -154,7 +162,7 @@ const GreetingUser = () => {
                   paddingLeft: 10,
                   paddingBottom: 10,
                 }}>
-                Kiến thức {isSmallScreen ? '' : 'Phoenix'}
+                Đào tạo
               </Text>
               <Text
                 style={{
@@ -163,10 +171,10 @@ const GreetingUser = () => {
                   color: 'black',
                   paddingLeft: 10,
                 }}>
-                Hệ thống thi
+                Thi trắc nghiệm
               </Text>
-            </TouchableOpacity>
-          </View>
+            </View>
+          </TouchableOpacity>
         </Animated.View>
         <Animated.View
         entering={FadeInRight.duration(500)}
@@ -202,7 +210,7 @@ const GreetingUser = () => {
                   paddingLeft: 10,
                   paddingBottom: 10,
                 }}>
-                Thực chiến
+                Chiến dịch
               </Text>
               <Text
                 style={{
@@ -211,7 +219,7 @@ const GreetingUser = () => {
                   color: 'black',
                   paddingLeft: 10,
                 }}>
-                Chiến dịch {isSmallScreen ? 'CĐ' : 'cộng đồng'}
+                Hoạt động {isSmallScreen ? 'SK' : 'sự kiện'}
               </Text>
             </View>
           </TouchableOpacity>

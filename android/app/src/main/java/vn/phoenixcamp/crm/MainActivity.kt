@@ -1,4 +1,4 @@
-package com.crm_app
+package vn.phoenixcamp.crm
 
 import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate
