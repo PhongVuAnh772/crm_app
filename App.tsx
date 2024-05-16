@@ -53,38 +53,19 @@ import {
   registerAppWithFCM,
   checkApplicationNotificationPermission,
 } from './src/helpers';
+import notifee, {EventType, AndroidImportance} from '@notifee/react-native';
+import {PERMISSIONS, request} from 'react-native-permissions';
+import {createNavigationContainerRef} from '@react-navigation/native';
+import useNotificationStore from './zustand/notifications/notificationSlice';
+
+
 const Stack = createNativeStackNavigator();
 
 const widthDimension = Dimensions.get('screen').width;
 const heightDimension = Dimensions.get('screen').height;
 
 function App(): React.JSX.Element {
-  //  Alias: AndroidDebugKey
-  // MD5: 2D:6A:D3:44:E0:0A:BF:21:94:59:4C:6C:31:D5:A8:B1
-  // SHA1: 4A:D1:13:CA:C5:C8:86:E6:CF:22:40:32:82:CC:CE:C8:35:C9:BE:8D
-  // SHA-256: 36:8D:99:52:72:C3:57:60:5D:FE:94:BA:2E:A1:F1:2F:B4:DA:8B:C5:C0:06:FB:DA:4B:2C:FE:D5:EA:FE:FA:8B
-  const network = useSelector(state => state.network.ipv4);
-  const navigation = useNavigation()
-  useEffect(() => {
-    const fetchData = async () => {
-      const getNotification = await AsyncStorage.getItem('get_notification');
-      
-      console.log(getNotification)
-      if (getNotification === 'yes') {
-        const unsubscribe = registerListenerWithFCM();
-        return unsubscribe;
-      } else if (getNotification === 'no') {
-        return;
-      } else if (getNotification === null) {
-        await AsyncStorage.setItem('get_notification', 'yes');
-        const unsubscribe = registerListenerWithFCM();
-        return unsubscribe;
-      }
-    };
-
-    fetchData();
-  }, []);
- 
+  const navigationRef = createNavigationContainerRef();
 
   useEffect(() => {
     const getTokenDevice = async () => {
@@ -123,7 +104,8 @@ function App(): React.JSX.Element {
     getTokenDevice();
   }, []);
   const token = useSelector(state => state.auth.token);
-
+const network = useSelector(state => state.network.ipv4);
+  const navigation = useNavigation();
   useEffect(() => {
     const getLastLogin = async () => {
       console.log('Đã cập nhật đăng nhập lần cuối');
@@ -180,7 +162,6 @@ function App(): React.JSX.Element {
     ),
   };
   const dispatch = useDispatch();
-
   useEffect(() => {
     const getToken = async () => {
       try {
@@ -201,14 +182,30 @@ function App(): React.JSX.Element {
   const [completeNavigating, setCompleteNavigating] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
   const [handlePressCompleted, setHandlePressCompleted] = useState(false);
+  const bears = useNotificationStore((state) => state.isTrue)
 
   useEffect(() => {
+    console.log("zubtand:" + bears)
+    const handleDeepLink = async () => {
+    try {
+      const initialUrl = await Linking.getInitialURL();
+      if (initialUrl && initialUrl.startsWith('phoenixcampcrm://')) {
+        console.log(initialUrl)
+        return;
+      }
+    } catch (error) {
+      console.error('Error getting initial URL:', error);
+    }
+
     setIsLoading(false);
 
     setTimeout(() => {
       handlePress();
       setHandlePressCompleted(true);
     }, 3000);
+  };
+
+  handleDeepLink();
   }, []);
   const [statusBarColor, setStatusBarColor] = useState(
     colorConstants.primaryColor,
@@ -225,198 +222,194 @@ function App(): React.JSX.Element {
   };
 
   useEffect(() => {
-    if (handlePressCompleted) {
+    if (handlePressCompleted && bears) {
       // setCompleteNavigating(false);
-      navigation.navigate('HomeTabNavigators')
+      navigation.navigate('HomeTabNavigators');
     }
   }, [handlePressCompleted]);
   return (
     <>
       <StatusBar barStyle="light-content" backgroundColor={statusBarColor} />
-      
-        <Stack.Navigator
-          screenOptions={{
-            headerShown: false,
-          }}>
-          {/* {completeNavigating ? (
+
+      <Stack.Navigator
+      // initialRouteName='Loading'
+        screenOptions={{
+          headerShown: false,
+        }}>
+        {/* {completeNavigating ? (
             
           ) : (
             <> */}
-            <Stack.Screen name="Loading">
-              {() => (
-                <View
-                  style={{
-                    flex: 1,
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    backgroundColor: colorConstants.primaryColor,
-                  }}>
-                  <Image
-                    source={logoLoading}
-                    style={styles.logoLoadingAssets}
-                    alt=""
-                  />
-                  <Svg style={styles.svg}>
-                    <AnimatedCircle
-                      cx="50%"
-                      cy="50%"
-                      fill="white"
-                      animatedProps={animatedProps}
-                    />
-                  </Svg>
-                  {isLoading && (
-                    <ActivityIndicator size="large" color="white" />
-                  )}
-                  <Text style={styles.loadingText}>PHOENIX CRM</Text>
-                </View>
-              )}
-            </Stack.Screen>
-              <Stack.Screen
-                name="HomeTabNavigators"
-                component={TabNavigators}
+        <Stack.Screen name="Loading">
+          {() => (
+            <View
+              style={{
+                flex: 1,
+                justifyContent: 'center',
+                alignItems: 'center',
+                backgroundColor: colorConstants.primaryColor,
+              }}>
+              <Image
+                source={logoLoading}
+                style={styles.logoLoadingAssets}
+                alt=""
               />
-              <Stack.Screen
-                name="NotificationScreen"
-                component={NotificationScreen}
-                options={{
-                  presentation: 'modal',
-                  animationTypeForReplace: 'push',
-                  animation: 'slide_from_bottom',
-                }}
-              />
-              <Stack.Screen
-                name="Login"
-                component={LoginScreen}
-                options={{
-                  presentation: 'modal',
-                  animationTypeForReplace: 'push',
-                  animation: 'slide_from_bottom',
-                }}
-              />
-              <Stack.Screen
-                name="CartScreen"
-                component={CartScreen}
-                options={{
-                  presentation: 'modal',
-                  animationTypeForReplace: 'pop',
-                  animation: 'slide_from_right',
-                }}
-              />
-              <Stack.Screen
-                name="InformationFixing"
-                component={InformationFixing}
-                options={{
-                  presentation: 'modal',
-                  animationTypeForReplace: 'pop',
-                  animation: 'slide_from_right',
-                }}
-              />
+              <Svg style={styles.svg}>
+                <AnimatedCircle
+                  cx="50%"
+                  cy="50%"
+                  fill="white"
+                  animatedProps={animatedProps}
+                />
+              </Svg>
+              {isLoading && <ActivityIndicator size="large" color="white" />}
+              <Text style={styles.loadingText}>PHOENIX CRM</Text>
+            </View>
+          )}
+        </Stack.Screen>
+        <Stack.Screen name="HomeTabNavigators" component={TabNavigators} />
+        <Stack.Screen
+          name="NotificationScreen"
+          component={NotificationScreen}
+          options={{
+            presentation: 'modal',
+            animationTypeForReplace: 'push',
+            animation: 'slide_from_bottom',
+          }}
+        />
+        <Stack.Screen
+          name="Login"
+          component={LoginScreen}
+          options={{
+            presentation: 'modal',
+            animationTypeForReplace: 'push',
+            animation: 'slide_from_bottom',
+          }}
+        />
+        <Stack.Screen
+          name="CartScreen"
+          component={CartScreen}
+          options={{
+            presentation: 'modal',
+            animationTypeForReplace: 'pop',
+            animation: 'slide_from_right',
+          }}
+        />
+        <Stack.Screen
+          name="InformationFixing"
+          component={InformationFixing}
+          options={{
+            presentation: 'modal',
+            animationTypeForReplace: 'pop',
+            animation: 'slide_from_right',
+          }}
+        />
 
-              <Stack.Screen
-                name="ForgetPasswordIndex"
-                component={ForgetPasswordIndex}
-                options={{
-                  presentation: 'modal',
-                  animationTypeForReplace: 'pop',
-                  animation: 'slide_from_right',
-                }}
-              />
-              <Stack.Screen
-                name="SpecifiedCategory"
-                component={SpecifiedCategory}
-                options={{
-                  presentation: 'modal',
-                  animationTypeForReplace: 'pop',
-                  animation: 'slide_from_right',
-                }}
-              />
-              <Stack.Screen
-                name="ForgetPasswordChanging"
-                component={ForgetPasswordChanging}
-                options={{
-                  presentation: 'modal',
-                  animationTypeForReplace: 'pop',
-                  animation: 'slide_from_right',
-                }}
-              />
-              <Stack.Screen
-                name="SuccessForgetPassword"
-                component={SuccessForgetPassword}
-              />
-              <Stack.Screen name="CampaignStacks" component={CampaignStacks} />
-              <Stack.Screen
-                name="SpecifiedCampaign"
-                component={SpecifiedCampaign}
-                options={{
-                  presentation: 'modal',
-                  animationTypeForReplace: 'pop',
-                  animation: 'slide_from_right',
-                }}
-              />
-              <Stack.Screen
-                name="CreatingCampaign"
-                component={CreatingCampaign}
-                options={{
-                  presentation: 'modal',
-                  animationTypeForReplace: 'pop',
-                  animation: 'slide_from_right',
-                }}
-              />
-              <Stack.Screen
-                name="ImportingGoods"
-                component={ImportingGoods}
-                options={{
-                  presentation: 'modal',
-                  animationTypeForReplace: 'pop',
-                  animation: 'slide_from_right',
-                }}
-              />
-              <Stack.Screen
-                name="ListingGoods"
-                component={ListingGoods}
-                options={{
-                  presentation: 'modal',
-                  animationTypeForReplace: 'pop',
-                  animation: 'slide_from_right',
-                }}
-              />
-              <Stack.Screen
-                name="ListingRequests"
-                component={ListingRequests}
-                options={{
-                  presentation: 'modal',
-                  animationTypeForReplace: 'pop',
-                  animation: 'slide_from_right',
-                }}
-              />
-              <Stack.Screen
-                name="HistoryRequests"
-                component={HistoryRequests}
-                options={{
-                  presentation: 'modal',
-                  animationTypeForReplace: 'pop',
-                  animation: 'slide_from_right',
-                }}
-              />
-              <Stack.Screen
-                name="ListEnjoyingCustomer"
-                component={ListEnjoyingCustomer}
-                options={{
-                  presentation: 'modal',
-                  animationTypeForReplace: 'pop',
-                  animation: 'slide_from_right',
-                }}
-              />
-              <Stack.Screen
-                name="SettingNotificationScreen"
-                component={SettingNotificationScreen}
-                options={{
-                  presentation: 'modal',
-                  animationTypeForReplace: 'pop',
-                  animation: 'slide_from_right',
-                }}
-              />
-              {/* 
+        <Stack.Screen
+          name="ForgetPasswordIndex"
+          component={ForgetPasswordIndex}
+          options={{
+            presentation: 'modal',
+            animationTypeForReplace: 'pop',
+            animation: 'slide_from_right',
+          }}
+        />
+        <Stack.Screen
+          name="SpecifiedCategory"
+          component={SpecifiedCategory}
+          options={{
+            presentation: 'modal',
+            animationTypeForReplace: 'pop',
+            animation: 'slide_from_right',
+          }}
+        />
+        <Stack.Screen
+          name="ForgetPasswordChanging"
+          component={ForgetPasswordChanging}
+          options={{
+            presentation: 'modal',
+            animationTypeForReplace: 'pop',
+            animation: 'slide_from_right',
+          }}
+        />
+        <Stack.Screen
+          name="SuccessForgetPassword"
+          component={SuccessForgetPassword}
+        />
+        <Stack.Screen name="CampaignStacks" component={CampaignStacks} />
+        <Stack.Screen
+          name="SpecifiedCampaign"
+          component={SpecifiedCampaign}
+          options={{
+            presentation: 'modal',
+            animationTypeForReplace: 'pop',
+            animation: 'slide_from_right',
+          }}
+        />
+        <Stack.Screen
+          name="CreatingCampaign"
+          component={CreatingCampaign}
+          options={{
+            presentation: 'modal',
+            animationTypeForReplace: 'pop',
+            animation: 'slide_from_right',
+          }}
+        />
+        <Stack.Screen
+          name="ImportingGoods"
+          component={ImportingGoods}
+          options={{
+            presentation: 'modal',
+            animationTypeForReplace: 'pop',
+            animation: 'slide_from_right',
+          }}
+        />
+        <Stack.Screen
+          name="ListingGoods"
+          component={ListingGoods}
+          options={{
+            presentation: 'modal',
+            animationTypeForReplace: 'pop',
+            animation: 'slide_from_right',
+          }}
+        />
+        <Stack.Screen
+          name="ListingRequests"
+          component={ListingRequests}
+          options={{
+            presentation: 'modal',
+            animationTypeForReplace: 'pop',
+            animation: 'slide_from_right',
+          }}
+        />
+        <Stack.Screen
+          name="HistoryRequests"
+          component={HistoryRequests}
+          options={{
+            presentation: 'modal',
+            animationTypeForReplace: 'pop',
+            animation: 'slide_from_right',
+          }}
+        />
+        <Stack.Screen
+          name="ListEnjoyingCustomer"
+          component={ListEnjoyingCustomer}
+          options={{
+            presentation: 'modal',
+            animationTypeForReplace: 'pop',
+            animation: 'slide_from_right',
+          }}
+        />
+        <Stack.Screen
+          name="SettingNotificationScreen"
+          component={SettingNotificationScreen}
+          options={{
+            presentation: 'modal',
+            animationTypeForReplace: 'pop',
+            animation: 'slide_from_right',
+          }}
+        />
+        {/* 
               
               <Stack.Screen
                 name="ListCampaignIndex"
@@ -427,9 +420,7 @@ function App(): React.JSX.Element {
                   animation: 'slide_from_right',
                 }}
               /> */}
-            {/* </> */}
-          {/* )} */}
-        </Stack.Navigator>
+      </Stack.Navigator>
       <Toast config={toastConfig} />
     </>
   );

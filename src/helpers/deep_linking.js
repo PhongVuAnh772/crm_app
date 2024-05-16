@@ -1,12 +1,11 @@
-import { Linking, ActivityIndicator } from 'react-native';
-
+import {Linking, ActivityIndicator} from 'react-native';
 
 const NAVIGATION_IDS = ['login'];
 
 function buildDeepLinkFromNotificationData(data) {
   const navigationId = data?.navigationId;
   if (!NAVIGATION_IDS.includes(navigationId)) {
-    console.warn('Unverified navigationId', navigationId)
+    console.warn('Unverified navigationId', navigationId);
     return null;
   }
   if (navigationId === 'login') {
@@ -17,21 +16,21 @@ function buildDeepLinkFromNotificationData(data) {
   }
   const postId = data?.postId;
   if (typeof postId === 'string') {
-    return `phoenixcampcrm://app/post/${postId}`
+    return `phoenixcampcrm://app/post/${postId}`;
   }
-  console.warn('Missing postId')
-  return null
+  console.warn('Missing postId');
+  return null;
 }
 
 const linking = {
-  prefixes: ["phoenixcampcrm://app"],
+  prefixes: ['phoenixcampcrm://app'],
   config: {
     initialRouteName: 'Home',
     screens: {
       Login: 'login',
       Post: 'post/:id',
-      Settings: 'settings'
-    }
+      Settings: 'settings',
+    },
   },
   async getInitialURL() {
     const url = await Linking.getInitialURL();
@@ -53,9 +52,9 @@ const linking = {
 
     //onNotificationOpenedApp: When the application is running, but in the background.
     const unsubscribe = messaging().onNotificationOpenedApp(remoteMessage => {
-      const url = buildDeepLinkFromNotificationData(remoteMessage.data)
+      const url = buildDeepLinkFromNotificationData(remoteMessage.data);
       if (typeof url === 'string') {
-        listener(url)
+        listener(url);
       }
     });
 
@@ -64,7 +63,6 @@ const linking = {
       unsubscribe();
     };
   },
-}
-
+};
 
 export default linking;

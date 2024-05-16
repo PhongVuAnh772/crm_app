@@ -12,6 +12,7 @@ import addOtherCampaignReducer from '../slices/add-campaign/others/otherCampaign
 import AddTeamReducer from '../slices/add-campaign/teams/AddTeamSlice';
 import TeamReducer from '../slices/campaign/teams/TeamSlice';
 import listCampaignReducer from '../slices/list-campaign/listCampaignSlice';
+import notificationReducer from '../slices/notification/notificationSlice';
 export const store = configureStore({
   reducer: {
     network: networkReducer,
@@ -26,7 +27,8 @@ export const store = configureStore({
     addLocation: AddLocationReducer,
     addOtherCampaign: addOtherCampaignReducer,
     addTeam: AddTeamReducer,
-    listCampaigns: listCampaignReducer
+    listCampaigns: listCampaignReducer,
+    notification: notificationReducer
   },
   middleware: getDefaultMiddleware =>
     getDefaultMiddleware({
