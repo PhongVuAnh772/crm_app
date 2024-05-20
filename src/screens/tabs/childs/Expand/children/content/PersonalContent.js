@@ -30,7 +30,6 @@ import {useNavigation} from '@react-navigation/native';
 import {UPDATE_USER_DATA} from '../../../../../../../slices/users/userSlice';
 import {UPDATE_LOGOUT_REQUIRED} from '../../../../../../../slices/auth/authSlice';
 import askingIcon from '../../../../../assets/question.png';
-import * as Burnt from 'burnt';
 import {CLEAR_USER_DATA} from '../../../../../../../slices/users/userSlice';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import CheckBox from '@react-native-community/checkbox';
