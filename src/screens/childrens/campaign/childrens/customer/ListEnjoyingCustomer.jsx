@@ -20,7 +20,7 @@ import {useDispatch, useSelector} from 'react-redux';
 import Octicons from 'react-native-vector-icons/Octicons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { UPDATE_LOGOUT_REQUIRED } from '../../../../../../slices/auth/authSlice';
+import {UPDATE_LOGOUT_REQUIRED} from '../../../../../../slices/auth/authSlice';
 import Entypo from 'react-native-vector-icons/Entypo';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
@@ -40,17 +40,21 @@ import LoginSession from '../../../../../auth/required/LoginSession';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import Clipboard from '@react-native-clipboard/clipboard';
 import Feather from 'react-native-vector-icons/Feather';
-import Animated, {FadeInUp,BounceIn,FadeInLeft} from 'react-native-reanimated';
-import LottieView from "lottie-react-native";
-
-
+import Animated, {
+  FadeInUp,
+  BounceIn,
+  FadeInLeft,
+} from 'react-native-reanimated';
+import LottieView from 'lottie-react-native';
+import avatarNull from '../../../../assets/avatar-null.png';
+import noneDataSticker from '../../../../assets/marketing.png';
 const heightDimension = Dimensions.get('screen').height;
 const widthDimension = Dimensions.get('screen').width;
 const widthDimensions = Dimensions.get('screen').width;
 const heightDimensions = Dimensions.get('screen').height;
 
-const { width } = Dimensions.get('window');
-const isSmallScreen = width < 375; 
+const {width} = Dimensions.get('window');
+const isSmallScreen = width < 375;
 const dataActionCaring = [
   {label: 'Gọi điện', id: 'call'},
   {label: 'Nhắn tin', id: 'message'},
@@ -60,13 +64,34 @@ const dataActionCaring = [
 ];
 
 const OrderManagement = ({route}) => {
+  const dataPosition = [
+    {name: 'Nam', value: '1'},
+    {name: 'Nữ', value: '2'},
+  ];
   const {item} = route.params;
+  const [modalHistoryChoosing, setModalHistoryChoosing] = useState(false);
+  const [dataCustomerGroup, setDataCustomerGroup] = useState([]);
   const userData = useSelector(state => state.user.user);
   const navigation = useNavigation();
   const bottomSheetModalRef = useRef(null);
   const bottomSheetCustomerGroupRef = useRef(null);
   const bottomSheetHistoryRef = useRef(null);
   const [textAddGroup, setTextAddGroup] = useState('');
+  const [menuPosition, setMenuPosition] = useState({x: 0, y: 0});
+  const [loading, setLoading] = useState(false);
+  const loginChecking = useSelector(state => state.auth.login);
+  const token = useSelector(state => state.auth.token);
+  const network = useSelector(state => state.network.ipv4);
+  const [dataCustomer, setDataCustomer] = useState([]);
+  const [customerChoosing, setCustomerChoosing] = useState([]);
+  const [errorData, setErrorData] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [menuVisible, setMenuVisible] = useState(false);
+  const [isFocus, setIsFocus] = useState(false);
+  const [selectedItem, setSelectedItem] = useState(null);
+  const [loadingAddGroup, setLoadingAddGroup] = useState(false);
+  const [noneDataMessage, setNoneDataMessage] = useState(false);
+
   const bottomSheetHistoryPress = useCallback(customer => {
     setDataHistoryMore(customer);
     setModalHistoryChoosing(false);
@@ -75,7 +100,6 @@ const OrderManagement = ({route}) => {
   const copyToClipboard = () => {
     Clipboard.setString(`KHÁCH HÀNG	: ${dataHistoryMore}\nworld`);
   };
-  const [loadingAddGroup, setLoadingAddGroup] = useState(false);
   const handleAddGroupCustomer = async () => {
     setLoadingAddGroup(true);
     const response = await axios.post(`${network}/addGroupCustomerAPI`, {
@@ -99,7 +123,7 @@ const OrderManagement = ({route}) => {
         weighty: 0,
       };
       setLoadingAddGroup(false);
-      setDataCustomerGroup([newDataGroup,...dataCustomerGroup]);
+      setDataCustomerGroup([newDataGroup, ...dataCustomerGroup]);
     } else {
       setLoadingAddGroup(false);
     }
@@ -118,8 +142,7 @@ const OrderManagement = ({route}) => {
   const handleSheetHistoryClosing = useCallback(() => {
     setModalHistoryChoosing(true);
   }, []);
-  const handleSheetChanges = useCallback(index => {
-  }, []);
+  const handleSheetChanges = useCallback(index => {}, []);
   const snapPoints = useMemo(() => ['25%', '30%'], []);
   const snapPointsCustomerGroup = useMemo(() => ['40%', '50%'], []);
 
@@ -164,18 +187,7 @@ const OrderManagement = ({route}) => {
       setSelectedImageFixing(imageUri);
     }
   };
-  const [menuPosition, setMenuPosition] = useState({x: 0, y: 0});
-  const [loading, setLoading] = useState(false);
-  const loginChecking = useSelector(state => state.auth.login);
-  const token = useSelector(state => state.auth.token);
-  const network = useSelector(state => state.network.ipv4);
-  const [dataCustomer, setDataCustomer] = useState([]);
-  const [customerChoosing, setCustomerChoosing] = useState([]);
-  const [errorData, setErrorData] = useState(false);
-  const [modalVisible, setModalVisible] = useState(false);
-  const [menuVisible, setMenuVisible] = useState(false);
-  const [isFocus, setIsFocus] = useState(false);
-  const [selectedItem, setSelectedItem] = useState(null);
+
   const handleShowMenu = (event, item) => {
     const layout = event.nativeEvent.layout;
 
@@ -190,12 +202,7 @@ const OrderManagement = ({route}) => {
     setSelectedItem(null);
     setMenuVisible(false);
   };
-  const dataPosition = [
-    {name: 'Nam', value: '1'},
-    {name: 'Nữ', value: '2'},
-  ];
-  const [modalHistoryChoosing, setModalHistoryChoosing] = useState(false);
-  const [dataCustomerGroup, setDataCustomerGroup] = useState([]);
+
   function formatDate(date, targetFormat = 'hh:mm dd/MM/yyyy') {
     const options = {
       hour12: targetFormat.includes('h'),
@@ -339,11 +346,9 @@ const OrderManagement = ({route}) => {
         });
       } else {
         setLoading(false);
-
       }
     } else {
       setLoading(false);
-
     }
   };
   const handleAddCaringModal = async () => {
@@ -372,21 +377,37 @@ const OrderManagement = ({route}) => {
   };
   useEffect(() => {
     const getData = async () => {
-      const response = await axios.post(`${network}/getListCustomerCampaignAPI`, {
-        token: token,
-        limit: 200,
-        page: 1,
-        id: item.id
-      });
-      if (response.data && response.data.code === 0) {
+      setLoading(true);
+      const response = await axios.post(
+        `${network}/getListCustomerCampaignAPI`,
+        {
+          token: token,
+          limit: 200,
+          page: 1,
+          id: item.id,
+        },
+      );
+      if (
+        response.data &&
+        response.data.code === 0 &&
+        response.data?.listData?.length > 0
+      ) {
+        console.log('hei',token,item.id)
         setDataCustomer(response.data.listData);
-      } else {
+        setLoading(false);
+      } else if (response.data && response.data.code === 3) {
         await AsyncStorage.removeItem('user_data');
         await AsyncStorage.removeItem('token');
         dispatch(UPDATE_LOGOUT_REQUIRED());
         setShowLoginModal(true);
-              console.log(response.data)
-
+        setLoading(false);
+      } else if (
+        response.data &&
+        response.data.code == 0 &&
+        response.data?.listData?.length == 0
+      ) {
+        setLoading(false);
+        setNoneDataMessage(true);
       }
     };
     getData();
@@ -643,50 +664,61 @@ const OrderManagement = ({route}) => {
       <TouchableWithoutFeedback onPress={() => setMenuVisible(false)}>
         {/* <BottomSheetModalProvider> */}
         <View style={styles.container}>
-            <View style={styles.headerContainer}>
-        <TouchableOpacity
-          style={styles.headerButtonContainer}
-          onPress={() => navigation.goBack()}>
-          <FontAwesome name="arrow-left" size={15} color="rgb(37, 41, 109)" />
-        </TouchableOpacity>
+          <View style={styles.headerContainer}>
+            <TouchableOpacity
+              style={styles.headerButtonContainer}
+              onPress={() => navigation.goBack()}>
+              <FontAwesome
+                name="arrow-left"
+                size={15}
+                color="rgb(37, 41, 109)"
+              />
+            </TouchableOpacity>
 
-        {loginChecking ? (
-          <TouchableOpacity onPress={() => console.log(userData.avatar)}>
-            <Image
-            source={{uri: userData.avatar}}
-            alt=""
-            style={[
-              styles.imageContainer,
-              {
-                borderRadius: 25,
-                resizeMode: 'contain',
-                backgroundColor: 'white',
-              },
-            ]}
+            {loginChecking ? (
+              <TouchableOpacity onPress={() => console.log(userData.avatar)}>
+                <Image
+                  source={{uri: userData.avatar}}
+                  alt=""
+                  style={[
+                    styles.imageContainer,
+                    {
+                      borderRadius: 25,
+                      resizeMode: 'contain',
+                      backgroundColor: 'white',
+                    },
+                  ]}
+                />
+              </TouchableOpacity>
+            ) : (
+              <Image
+                source={avatarNull}
+                alt=""
+                style={[
+                  styles.imageContainer,
+                  {
+                    borderRadius: 25,
+                    resizeMode: 'contain',
+                    backgroundColor: 'white',
+                  },
+                ]}
+              />
+            )}
+          </View>
+
+          <LottieView
+            source={require('../../../../../animations/lotties/campaignLotties.json')}
+            style={{
+              width: 120,
+              height: 120,
+              resizeMode: 'cover',
+              alignSelf: 'flex-end',
+              position: 'absolute',
+              top: '0%',
+            }}
+            autoPlay
+            loop
           />
-          </TouchableOpacity>
-        ) : (
-          <Image
-            source={avatarNull}
-            alt=""
-            style={[
-              styles.imageContainer,
-              {
-                borderRadius: 25,
-                resizeMode: 'contain',
-                backgroundColor: 'white',
-              },
-            ]}
-          />
-        )}
-      </View>
-      
-<LottieView
-      source={require("../../../../../animations/lotties/campaignLotties.json")}
-      style={{width: 120, height:120,resizeMode:'cover',alignSelf:'flex-end',position:'absolute',top: '0%'}}
-      autoPlay
-      loop
-    />
           <View style={styles.searchSpecifiedContainer}>
             <View style={styles.searchContainer}>
               <TextInput
@@ -699,7 +731,11 @@ const OrderManagement = ({route}) => {
               />
 
               <View style={styles.searchIconContainer}>
-                <Octicons name="search" size={isSmallScreen ? 15 : 20} color="gray" />
+                <Octicons
+                  name="search"
+                  size={isSmallScreen ? 15 : 20}
+                  color="gray"
+                />
               </View>
               <View style={styles.filterIconContainer}>
                 <MaterialCommunityIcons
@@ -708,65 +744,6 @@ const OrderManagement = ({route}) => {
                   color="white"
                 />
               </View>
-              {/* {enableSearching && <View style={styles.searchResultsContainer}>
-            <View style={styles.searchResult}>
-              {dataHeaderSearch.length > 0 && <View
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  paddingVertical: 15,
-                  width: '100%',
-                  paddingHorizontal: 15,
-                  borderRadius: 10,
-                  marginVertical: 10,
-                }}>
-                <Image
-                  source={{uri: userData.avatar}}
-                  style={[
-                    styles.imageContainer,
-                    {
-                      borderRadius: 25,
-                      resizeMode: 'contain',
-                      backgroundColor: 'white',
-                    },
-                  ]}
-                />
-                <View style={{justifyContent: 'space-between'}}>
-                  
-                  <Text
-                    style={{
-                      fontSize: 17,
-                      fontWeight: 'bold',
-                      color: 'black',
-                      paddingLeft: 10,
-                                            paddingBottom: 10,
-
-                    }}>
-                    {userData.name}
-                  </Text>
-                  <Text
-                    style={{
-                      fontSize: 17,
-                      fontWeight: '400',
-                      color: 'black',
-                      paddingLeft: 10,
-                    }}>
-                    <Text
-                    style={{
-                      fontSize: 17,
-                      fontWeight: 'bold',
-                      color: 'black',
-                      paddingLeft: 10,
-                      
-                    }}>
-                    {userData.phone}
-                  </Text>, {userData.address}
-                  </Text>
-                </View>
-              </View>}
-              
-            </View>
-          </View>} */}
             </View>
           </View>
           <View
@@ -780,43 +757,26 @@ const OrderManagement = ({route}) => {
                 paddingTop: 20,
                 color: 'black',
                 fontWeight: '700',
-                fontSize: isSmallScreen ? 17 :21,
+                fontSize: isSmallScreen ? 17 : 21,
               }}>
               Danh sách tham gia
             </Text>
-            {/* <TouchableOpacity
-              style={{
-                marginTop: 20,
-
-                // paddingBottom: 10,
-                flexDirection: 'row',
-                backgroundColor: 'rgb(37, 41, 109)',
-                paddingVertical: 5,
-                paddingHorizontal: 10,
-                borderRadius: 10,
-              }}>
-              <AntDesign
-                size={18}
-                color="white"
-                name="adduser"
-                style={{paddingRight: 7}}
-              />
-              <Text
-                style={{
-                  color: 'white',
-                  fontWeight: '500',
-                  fontSize: isSmallScreen ? 17 :18,
-                }}>
-                Tạo mới
-              </Text>
-            </TouchableOpacity> */}
           </View>
           <ScrollView style={{flex: 1}}>
-            {dataCustomer.length > 0 ? (
+            {noneDataMessage ? (
+              <View style={{flex: 1, alignItems: 'center', paddingTop: '30%'}}>
+                <Image
+                  source={noneDataSticker}
+                  style={{width: 150, height: 150, resizeMode: 'contain'}}
+                />
+                <Text style={{color: 'black',fontSize:16,fontWeight:'bold',textAlign:'center',paddingTop: 15}}>
+                  Chưa có khách hàng tham gia sự kiện
+                </Text>
+              </View>
+            ) : dataCustomer.length > 0 ? (
               dataCustomer.map((customer, index) => (
                 <Animated.View
-                                           entering={FadeInLeft.duration(500 + (index * 200))}
-
+                  entering={FadeInLeft.duration(500 + index * 200)}
                   style={{
                     flexDirection: 'row',
                     justifyContent: 'space-between',
@@ -828,12 +788,13 @@ const OrderManagement = ({route}) => {
                   }}
                   key={index}>
                   <View style={{flexDirection: 'row'}}>
-                    <Image alt=""
+                    <Image
+                      alt=""
                       source={
-    customer.avatar && customer.avatar.startsWith('http')
-      ? { uri: customer.avatar }
-      : require('../../../../assets/avatar-null.png')
-  }
+                        customer.avatar && customer.avatar.startsWith('http')
+                          ? {uri: customer.avatar}
+                          : require('../../../../assets/avatar-null.png')
+                      }
                       style={{
                         // alignItems: 'center',
                         // justifyContent: 'center',
@@ -849,14 +810,19 @@ const OrderManagement = ({route}) => {
                     />
                     <View style={{paddingLeft: 20}}>
                       <Text style={{color: 'black'}}>
-                        <Text style={{fontWeight: 'bold', fontSize: isSmallScreen ? 15 : 20}}>
-                          {customer.full_name}
+                        <Text
+                          style={{
+                            fontWeight: 'bold',
+                            fontSize: isSmallScreen ? 12 : 15,
+                            textTransform:'capitalize'
+                          }}>
+                          {customer.customer_name}
                         </Text>
                       </Text>
                       <Text style={{color: 'black', paddingTop: 5}}>
                         SĐT:{' '}
-                        <Text style={{fontWeight: 'bold'}}>
-                          {customer.phone}
+                        <Text style={{fontWeight: 'bold',color:'black'}}>
+                          {customer.customer_phone}
                         </Text>
                       </Text>
                     </View>
@@ -892,7 +858,12 @@ const OrderManagement = ({route}) => {
                 </Animated.View>
               ))
             ) : (
-              <View style={{flex: 1, marginBottom: heightDimension * 0.05,marginTop: 20}}>
+              <View
+                style={{
+                  flex: 1,
+                  marginBottom: heightDimension * 0.05,
+                  marginTop: 20,
+                }}>
                 <SkeletonPlaceholder borderRadius={4} paddingTop={20}>
                   <SkeletonPlaceholder.Item flexDirection="column">
                     <SkeletonPlaceholder.Item flexDirection="row">
@@ -1523,7 +1494,8 @@ const OrderManagement = ({route}) => {
             }}>
             Lịch sử chăm sóc khách hàng : {customerChoosing.full_name}
           </Text>
-          <Image alt=""
+          <Image
+            alt=""
             source={{uri: customerChoosing.avatar}}
             style={{
               width: 100,
@@ -1952,7 +1924,8 @@ const OrderManagement = ({route}) => {
             }}>
             Chăm sóc khách hàng : {customerChoosing.full_name}
           </Text>
-          <Image alt=""
+          <Image
+            alt=""
             source={{uri: customerChoosing.avatar}}
             style={{
               width: 100,
@@ -2400,7 +2373,8 @@ const OrderManagement = ({route}) => {
                 </Text>
                 {selectedImageFixing ? (
                   <TouchableOpacity onPress={() => openImagePickerFixing()}>
-                    <Image alt=""
+                    <Image
+                      alt=""
                       source={{uri: selectedImageFixing}}
                       style={{width: '100%', height: 60}}
                       resizeMode="contain"
@@ -2408,7 +2382,8 @@ const OrderManagement = ({route}) => {
                   </TouchableOpacity>
                 ) : (
                   <TouchableOpacity onPress={() => openImagePickerFixing()}>
-                    <Image alt=""
+                    <Image
+                      alt=""
                       source={{uri: dataCustomerMore.avatar}}
                       style={{width: '100%', height: 60}}
                       resizeMode="contain"
@@ -2529,7 +2504,7 @@ const styles = StyleSheet.create({
     shadowColor: '#52006A',
   },
   inputSearching: {
-    height:  isSmallScreen ? 50 : 60,
+    height: isSmallScreen ? 50 : 60,
     padding: 10,
     marginTop: 5,
     width: '100%',
@@ -2655,11 +2630,10 @@ const styles = StyleSheet.create({
     paddingLeft: 10,
     fontSize: 17,
   },
-   headerContainer: {
+  headerContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-        paddingHorizontal: widthDimensions * 0.05,
-
+    paddingHorizontal: widthDimensions * 0.05,
   },
   dropdown: {
     height: 50,
@@ -2671,6 +2645,10 @@ const styles = StyleSheet.create({
   },
   icon: {
     marginRight: 5,
+  },
+  headerButtonContainer: {
+    width: 20,
+    height: 20
   },
   label: {
     position: 'absolute',

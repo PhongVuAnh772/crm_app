@@ -47,14 +47,16 @@ const DrawerHomeStack = () => {
         }}
       />
       <Drawer.Screen
-        name="AgentTreeStacks"
+        name="AgentTreeStacksDrawer"
         
         component={AgentTreeStacks}
         options={{
           drawerIcon: ({color}) => (
             <Entypo name="flow-tree" size={20} color={color} />
           ),
+
           drawerLabel: 'Tuyến dưới',
+          
         //   drawerLabelStyle: {
         //     fontSize: 13
         //   }

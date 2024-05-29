@@ -24,70 +24,78 @@ import {Circle, Svg} from 'react-native-svg';
 import {colorConstants} from './constants/colors/colors';
 import logoLoading from './constants/logo/phoenix-logo-other.png';
 import notifee, {EventType, AndroidImportance} from '@notifee/react-native';
-import { useDispatch,useSelector } from 'react-redux';
-import { NAVIGATING_FROM_NOTIFICATION } from './slices/notification/notificationSlice';
+import {useDispatch, useSelector} from 'react-redux';
+import {NAVIGATING_FROM_NOTIFICATION} from './slices/notification/notificationSlice';
 import useNotificationStore from './zustand/notifications/notificationSlice';
 import AsyncStorage from '@react-native-async-storage/async-storage';
- async function onDisplayNotification(title, body, data) {
-    console.log('onDisplayNotification Adnan: ', JSON.stringify(data));
+async function onDisplayNotification(title, body, data) {
+  console.log('onDisplayNotification Adnan: ', JSON.stringify(data));
 
-    // Request permissions (required for iOS)
-    await notifee.requestPermission();
-    // Create a channel (required for Android)
-    const channelId = await notifee.createChannel({
-      id: 'default',
-      name: 'Default Channel',
-      importance: AndroidImportance.HIGH,
-    });
+  // Request permissions (required for iOS)
+  await notifee.requestPermission();
+  // Create a channel (required for Android)
+  const channelId = await notifee.createChannel({
+    id: 'default',
+    name: 'Default Channel',
+    importance: AndroidImportance.HIGH,
+  });
 
-    // Display a notification
-    await notifee.displayNotification({
-      title: title,
-      body: body,
-      data: data,
-      android: {
-        channelId,
-        // pressAction is needed if you want the notification to open the app when pressed
-        pressAction: {
-          id: 'default',
-        },
+  // Display a notification
+  await notifee.displayNotification({
+    title: title,
+    body: body,
+    data: data,
+    android: {
+      channelId,
+      // pressAction is needed if you want the notification to open the app when pressed
+      pressAction: {
+        id: 'default',
       },
-    });
-  }
-const saveDataNotification = async (message) => {
+    },
+  });
+}
+const saveDataNotification = async message => {
   try {
     // Retrieve stored notifications
-    const valueNotification = await AsyncStorage.getItem('my-data-notification');
-    
+    const valueNotification = await AsyncStorage.getItem(
+      'my-data-notification',
+    );
+
     // Retrieve stored user data
     const storedUserLogin = await AsyncStorage.getItem('user_data');
 
     let notifications = [];
-    
+
     if (valueNotification !== null) {
       notifications = JSON.parse(valueNotification);
     }
 
     if (storedUserLogin !== null) {
       const user = JSON.parse(storedUserLogin);
-      
+
       // Add user id to the message
-      const messageWithUserId = { message, userId: user.id };
-      
+      const messageWithUserId = {message, userId: user.id};
+
       // Add the new message with user id to the beginning of the notifications array
       notifications.unshift(messageWithUserId);
-      
+
       // Save the updated notifications array back to storage
-      await AsyncStorage.setItem('my-data-notification', JSON.stringify(notifications));
-    } else {      
+      await AsyncStorage.setItem(
+        'my-data-notification',
+        JSON.stringify(notifications),
+      );
+    } else {
       // Add user id to the message
-      const messageWithUserId = { message, userId: 0 };
-      
+      const messageWithUserId = {message, userId: 0};
+
       // Add the new message with user id to the beginning of the notifications array
       notifications.unshift(messageWithUserId);
-      
+
       // Save the updated notifications array back to storage
-      await AsyncStorage.setItem('my-data-notification', JSON.stringify(notifications));
+      await AsyncStorage.setItem(
+        'my-data-notification',
+        JSON.stringify(notifications),
+      );
       console.error('User data not found' + storedUserLogin);
     }
   } catch (error) {
@@ -95,16 +103,38 @@ const saveDataNotification = async (message) => {
   }
 };
 
-messaging().setBackgroundMessageHandler(async remoteMessage => {
-          saveDataNotification(remoteMessage)
+// messaging().setBackgroundMessageHandler(async remoteMessage => {
+//   saveDataNotification(remoteMessage);
 
-  onDisplayNotification(
-    remoteMessage.notification?.title,
-          remoteMessage.notification?.body,
-          remoteMessage?.data,
-  );
-  return Promise.resolve();
-});
+//   onDisplayNotification(
+//     remoteMessage.notification?.title,
+//     remoteMessage.notification?.body,
+//     remoteMessage?.data,
+//   );
+//   return Promise.resolve();
+// });
+
+// messaging().onMessage(async remoteMessage => {
+//   console.log('onMessage Received : ', JSON.stringify(remoteMessage));
+//   if (remoteMessage?.notification?.title && remoteMessage?.notification?.body) {
+//     onDisplayNotification(
+//       remoteMessage.notification?.title,
+//       remoteMessage.notification?.body,
+//       remoteMessage?.data,
+//     );
+//   }
+// });
+
+// messaging().onNotificationOpenedApp(async remoteMessage => {
+//   saveDataNotification(remoteMessage);
+
+//   onDisplayNotification(
+//     remoteMessage.notification?.title,
+//     remoteMessage.notification?.body,
+//     remoteMessage?.data,
+//   );
+//   return Promise.resolve();
+// });
 
 const widthDimension = Dimensions.get('screen').width;
 const heightDimension = Dimensions.get('screen').height;
@@ -118,84 +148,81 @@ const heightDimension = Dimensions.get('screen').height;
 // });
 
 const ReduxApp = () => {
-  
-    const setFalse = useNotificationStore((state) => state.setFalse)
+  const setFalse = useNotificationStore(state => state.setFalse);
 
   const NAVIGATION_IDS = ['notification', 'post', 'settings'];
-  
-  function buildDeepLinkFromNotificationData(data) {
-    const navigationId = data?.navigationId;
-    if (!NAVIGATION_IDS.includes(navigationId)) {
-                    // setFalse();
 
-      console.warn('Unverified navigationId', navigationId);
-      return null;
-    }
-    if (navigationId === 'notification') {
-      return 'phoenixcampcrm://notification';
-    }
-    if (navigationId === 'settings') {
-                    // setFalse();
+  // function buildDeepLinkFromNotificationData(data) {
+  //   const navigationId = data?.navigationId;
+  //   if (!NAVIGATION_IDS.includes(navigationId)) {
+  //     // setFalse();
 
-      return 'phoenixcampcrm://settings';
-    }
-    const postId = data?.postId;
-    if (typeof postId === 'string') {
-      return `phoenixcampcrm://post/${postId}`;
-    }
-    console.warn('Missing postId');
-    return null;
-  }
+  //     console.warn(navigationId);
+  //     return null;
+  //   }
+  //   if (navigationId === 'notification') {
+  //     return 'phoenixcampcrm://notification';
+  //   }
+  //   if (navigationId === 'settings') {
+  //     // setFalse();
 
-  const linking = {
-    prefixes: ['phoenixcampcrm://'],
-    config: {
-      initialRouteName: 'HomeTabNavigators',
-      screens: {
-        Home: 'HomeTabNavigators',
-        Details: 'details/:id',
-        NotificationScreen: 'notification',
-      },
-    },
-    async getInitialURL() {
+  //     return 'phoenixcampcrm://settings';
+  //   }
+  //   const postId = data?.postId;
+  //   if (typeof postId === 'string') {
+  //     return `phoenixcampcrm://post/${postId}`;
+  //   }
+  //   console.warn('Missing postId');
+  //   return null;
+  // }
 
-      const url = await Linking.getInitialURL();
-      if (typeof url === 'string') {
-        // dispatch(NAVIGATING_FROM_NOTIFICATION())
-        return url;
-      }
-      //getInitialNotification: When the application is opened from a quit state.
-      const message = await messaging().getInitialNotification();
-      const deeplinkURL = buildDeepLinkFromNotificationData(message?.data);
-      if (typeof deeplinkURL === 'string') {
-        setFalse();
-        return deeplinkURL;
-      }
-    },
-    subscribe(listener) {
-      const onReceiveURL = ({url}) => {
-        listener(url);
-      }
+  // const linking = {
+  //   prefixes: ['phoenixcampcrm://'],
+  //   config: {
+  //     initialRouteName: 'HomeTabNavigators',
+  //     screens: {
+  //       Home: 'HomeTabNavigators',
+  //       Details: 'details/:id',
+  //       NotificationScreen: 'notification',
+  //     },
+  //   },
+  //   async getInitialURL() {
+  //     const url = await Linking.getInitialURL();
+  //     if (typeof url === 'string') {
+  //       // dispatch(NAVIGATING_FROM_NOTIFICATION())
+  //       return url;
+  //     }
+  //     //getInitialNotification: When the application is opened from a quit state.
+  //     const message = await messaging().getInitialNotification();
+  //     const deeplinkURL = buildDeepLinkFromNotificationData(message?.data);
+  //     if (typeof deeplinkURL === 'string') {
+  //       setFalse();
+  //       return deeplinkURL;
+  //     }
+  //   },
+  //   subscribe(listener) {
+  //     const onReceiveURL = ({url}) => {
+  //       listener(url);
+  //     };
 
-      
-      // Listen to incoming links from deep linking
-      const linkingSubscription = Linking.addEventListener('url', onReceiveURL);
+  //     // Listen to incoming links from deep linking
+  //     const linkingSubscription = Linking.addEventListener('url', onReceiveURL);
 
-      //onNotificationOpenedApp: When the application is running, but in the background.
-      const unsubscribe = messaging().onNotificationOpenedApp(remoteMessage => {
-        console.log(remoteMessage);
-        const url = buildDeepLinkFromNotificationData(remoteMessage.data);
-        if (typeof url === 'string') {
-          listener(url);
-        }
-      });
+  //     //onNotificationOpenedApp: When the application is running, but in the background.
+  //     const unsubscribe = messaging().onNotificationOpenedApp(remoteMessage => {
+  //       console.log(remoteMessage);
+  //       const url = buildDeepLinkFromNotificationData(remoteMessage.data);
+  //       if (typeof url === 'string') {
+  //         listener(url);
+  //       }
+  //     });
 
-      return () => {
-        linkingSubscription.remove();
-        unsubscribe();
-      };
-    },
-  };
+  //     return () => {
+  //       linkingSubscription.remove();
+  //       unsubscribe();
+  //     };
+  //   },
+  // };
 
   return (
     <GestureHandlerRootView style={{flex: 1}}>

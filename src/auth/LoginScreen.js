@@ -39,8 +39,8 @@ const LoginScreen = () => {
   const [visible,setVisible] =useState(true)
   const [isFocusedUsername, setIsFocusedUsername] = useState(false);
   const [isFocusedPassword, setIsFocusedPassword] = useState(false);
-  const [inputPhone, setInputPhone] = useState('0366886886');
-  const [inputPassword, setInputPassword] = useState('123456');
+  const [inputPhone, setInputPhone] = useState('');
+  const [inputPassword, setInputPassword] = useState('');
   const [errMessage, setErrorMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const handleLogin = async () => {

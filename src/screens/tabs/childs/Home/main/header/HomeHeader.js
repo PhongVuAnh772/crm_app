@@ -87,7 +87,7 @@ const HomeHeader = ({searching}) => {
       <View style={styles.wrapperHeader}>
         <View style={styles.logoContainerHeader}>
           <TouchableOpacity
-            onPress={() => navigation.openDrawer()}
+            onPress={() => navigation.goBack()}
             style={{
               // borderColor: {colorConstants.primaryColor},
               width: 40, 

@@ -55,7 +55,7 @@ const MyCampaignIndex = () => {
   const loginChecking = useSelector(state => state.auth.login);
   const navigation = useNavigation();
   const userData = useSelector(state => state.user.user);
-  const snapPoints = useMemo(() => ['25%', '30%'], []);
+  const snapPoints = useMemo(() => ['25%', '40%'], []);
 
   const bottomSheetModalRef = useRef(null);
   const renderBackdrop = useCallback(
@@ -189,7 +189,7 @@ const MyCampaignIndex = () => {
                 style={styles.itemCardContainer}
                 key={index}
                 onPress={() =>
-                  navigation.navigate('SpecifiedCampaign', {
+                  navigation.navigate('ListEnjoyingCustomer', {
                     item: data,
                   })
                 }>
@@ -524,7 +524,50 @@ const MyCampaignIndex = () => {
                     color: 'white',
                     paddingLeft: 15,
                   }}>
-                  Xem khách hàng tham gia
+                  Xem khách hàng đăng ký
+                </Text>
+              </View>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={()=> {
+                  bottomSheetModalRef.current?.close();
+
+              navigation.navigate('ListEnjoyingCustomer', {item: itemSelectMore})
+              // console.log(itemSelectMore)
+            }}>
+              <StatusBar
+                backgroundColor="rgba(0,0,0,0.5)"
+                barStyle="light-content"
+              />
+              <View
+                style={{
+                  width: '100%',
+                  paddingVertical: 15,
+                  paddingHorizontal: 15,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                }}>
+                <View
+                  style={{
+                    height: isSmallScreen ? 35 : 45,
+                    width: isSmallScreen ? 35 : 45,
+                    backgroundColor: 'white',
+                    borderRadius: 25,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}>
+                  <MaterialIcons
+                    name="find-in-page"
+                    size={isSmallScreen ? 18 : 20}
+                    color="rgb(20, 14, 56)"
+                  />
+                </View>
+                <Text
+                  style={{
+                    fontSize: isSmallScreen ? 14 : 18,
+                    color: 'white',
+                    paddingLeft: 15,
+                  }}>
+                  Xem khách hàng checkin
                 </Text>
               </View>
             </TouchableOpacity>
