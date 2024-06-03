@@ -67,42 +67,42 @@ const heightDimension = Dimensions.get('screen').height;
 function App(): React.JSX.Element {
   const navigationRef = createNavigationContainerRef();
 
-  // useEffect(() => {
-  //   const getTokenDevice = async () => {
-  //     const storedTokenDevice = await AsyncStorage.getItem('token_device');
-  //     await checkApplicationNotificationPermission();
-  //     await registerAppWithFCM();
-  //     if (storedTokenDevice === null) {
-  //       PermissionsAndroid.request(
-  //         PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS,
-  //       );
-  //       const authStatus = await messaging().requestPermission();
-  //       const enabled =
-  //         authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
-  //         authStatus === messaging.AuthorizationStatus.PROVISIONAL;
-  //       if (enabled) {
-  //         console.log('Authorization status:', authStatus);
-  //         const tokenDevice = await messaging().getToken();
-  //         if (tokenDevice) {
-  //           const response = await axios.post(`${network}/saveTokenDeviceAPI`, {
-  //             token_device: tokenDevice,
-  //           });
-  //           if (response.data && response.data.code === 0) {
-  //             await AsyncStorage.setItem('token_device', tokenDevice);
-  //             console.log(
-  //               'Token device đã được lưu, token device :' + tokenDevice,
-  //             );
-  //           }
-  //         }
-  //       }
-  //     } else {
-  //       console.log(
-  //         'Token device đã được lưu, token device :' + storedTokenDevice,
-  //       );
-  //     }
-  //   };
-  //   getTokenDevice();
-  // }, []);
+  useEffect(() => {
+    const getTokenDevice = async () => {
+      const storedTokenDevice = await AsyncStorage.getItem('token_device');
+      await checkApplicationNotificationPermission();
+      await registerAppWithFCM();
+      if (storedTokenDevice === null) {
+        PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS,
+        );
+        const authStatus = await messaging().requestPermission();
+        const enabled =
+          authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
+          authStatus === messaging.AuthorizationStatus.PROVISIONAL;
+        if (enabled) {
+          console.log('Authorization status:', authStatus);
+          const tokenDevice = await messaging().getToken();
+          if (tokenDevice) {
+            const response = await axios.post(`${network}/saveTokenDeviceAPI`, {
+              token_device: tokenDevice,
+            });
+            if (response.data && response.data.code === 0) {
+              await AsyncStorage.setItem('token_device', tokenDevice);
+              console.log(
+                'Token device đã được lưu, token device :' + tokenDevice,
+              );
+            }
+          }
+        }
+      } else {
+        console.log(
+          'Token device đã được lưu, token device :' + storedTokenDevice,
+        );
+      }
+    };
+    getTokenDevice();
+  }, []);
   const token = useSelector(state => state.auth.token);
 const network = useSelector(state => state.network.ipv4);
   const navigation = useNavigation();
@@ -412,17 +412,7 @@ const network = useSelector(state => state.network.ipv4);
             animation: 'slide_from_right',
           }}
         />
-        {/* 
-              
-              <Stack.Screen
-                name="ListCampaignIndex"
-                component={ListCampaignIndex}
-                options={{
-                  presentation: 'modal',
-                  animationTypeForReplace: 'pop',
-                  animation: 'slide_from_right',
-                }}
-              /> */}
+       
       </Stack.Navigator>
       <Toast config={toastConfig} />
     </>

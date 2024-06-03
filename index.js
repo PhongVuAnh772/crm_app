@@ -103,126 +103,126 @@ const saveDataNotification = async message => {
   }
 };
 
-// messaging().setBackgroundMessageHandler(async remoteMessage => {
-//   saveDataNotification(remoteMessage);
+messaging().setBackgroundMessageHandler(async remoteMessage => {
+  saveDataNotification(remoteMessage);
 
-//   onDisplayNotification(
-//     remoteMessage.notification?.title,
-//     remoteMessage.notification?.body,
-//     remoteMessage?.data,
-//   );
-//   return Promise.resolve();
-// });
+  onDisplayNotification(
+    remoteMessage.notification?.title,
+    remoteMessage.notification?.body,
+    remoteMessage?.data,
+  );
+  return Promise.resolve();
+});
 
-// messaging().onMessage(async remoteMessage => {
-//   console.log('onMessage Received : ', JSON.stringify(remoteMessage));
-//   if (remoteMessage?.notification?.title && remoteMessage?.notification?.body) {
-//     onDisplayNotification(
-//       remoteMessage.notification?.title,
-//       remoteMessage.notification?.body,
-//       remoteMessage?.data,
-//     );
-//   }
-// });
+messaging().onMessage(async remoteMessage => {
+  console.log('onMessage Received : ', JSON.stringify(remoteMessage));
+  if (remoteMessage?.notification?.title && remoteMessage?.notification?.body) {
+    onDisplayNotification(
+      remoteMessage.notification?.title,
+      remoteMessage.notification?.body,
+      remoteMessage?.data,
+    );
+  }
+});
 
-// messaging().onNotificationOpenedApp(async remoteMessage => {
-//   saveDataNotification(remoteMessage);
+messaging().onNotificationOpenedApp(async remoteMessage => {
+  saveDataNotification(remoteMessage);
 
-//   onDisplayNotification(
-//     remoteMessage.notification?.title,
-//     remoteMessage.notification?.body,
-//     remoteMessage?.data,
-//   );
-//   return Promise.resolve();
-// });
+  onDisplayNotification(
+    remoteMessage.notification?.title,
+    remoteMessage.notification?.body,
+    remoteMessage?.data,
+  );
+  return Promise.resolve();
+});
 
 const widthDimension = Dimensions.get('screen').width;
 const heightDimension = Dimensions.get('screen').height;
 
-// messaging().setBackgroundMessageHandler(async remoteMessage => {
-//   showLocalNotification(
-//     {title: remoteMessage.data.title, body: remoteMessage.data.body},
-//     remoteMessage.messageId,
-//   );
-//   return Promise.resolve();
-// });
+messaging().setBackgroundMessageHandler(async remoteMessage => {
+  showLocalNotification(
+    {title: remoteMessage.data.title, body: remoteMessage.data.body},
+    remoteMessage.messageId,
+  );
+  return Promise.resolve();
+});
 
 const ReduxApp = () => {
   const setFalse = useNotificationStore(state => state.setFalse);
 
   const NAVIGATION_IDS = ['notification', 'post', 'settings'];
 
-  // function buildDeepLinkFromNotificationData(data) {
-  //   const navigationId = data?.navigationId;
-  //   if (!NAVIGATION_IDS.includes(navigationId)) {
-  //     // setFalse();
+  function buildDeepLinkFromNotificationData(data) {
+    const navigationId = data?.navigationId;
+    if (!NAVIGATION_IDS.includes(navigationId)) {
+      // setFalse();
 
-  //     console.warn(navigationId);
-  //     return null;
-  //   }
-  //   if (navigationId === 'notification') {
-  //     return 'phoenixcampcrm://notification';
-  //   }
-  //   if (navigationId === 'settings') {
-  //     // setFalse();
+      console.warn(navigationId);
+      return null;
+    }
+    if (navigationId === 'notification') {
+      return 'phoenixcampcrm://notification';
+    }
+    if (navigationId === 'settings') {
+      // setFalse();
 
-  //     return 'phoenixcampcrm://settings';
-  //   }
-  //   const postId = data?.postId;
-  //   if (typeof postId === 'string') {
-  //     return `phoenixcampcrm://post/${postId}`;
-  //   }
-  //   console.warn('Missing postId');
-  //   return null;
-  // }
+      return 'phoenixcampcrm://settings';
+    }
+    const postId = data?.postId;
+    if (typeof postId === 'string') {
+      return `phoenixcampcrm://post/${postId}`;
+    }
+    console.warn('Missing postId');
+    return null;
+  }
 
-  // const linking = {
-  //   prefixes: ['phoenixcampcrm://'],
-  //   config: {
-  //     initialRouteName: 'HomeTabNavigators',
-  //     screens: {
-  //       Home: 'HomeTabNavigators',
-  //       Details: 'details/:id',
-  //       NotificationScreen: 'notification',
-  //     },
-  //   },
-  //   async getInitialURL() {
-  //     const url = await Linking.getInitialURL();
-  //     if (typeof url === 'string') {
-  //       // dispatch(NAVIGATING_FROM_NOTIFICATION())
-  //       return url;
-  //     }
-  //     //getInitialNotification: When the application is opened from a quit state.
-  //     const message = await messaging().getInitialNotification();
-  //     const deeplinkURL = buildDeepLinkFromNotificationData(message?.data);
-  //     if (typeof deeplinkURL === 'string') {
-  //       setFalse();
-  //       return deeplinkURL;
-  //     }
-  //   },
-  //   subscribe(listener) {
-  //     const onReceiveURL = ({url}) => {
-  //       listener(url);
-  //     };
+  const linking = {
+    prefixes: ['phoenixcampcrm://'],
+    config: {
+      initialRouteName: 'HomeTabNavigators',
+      screens: {
+        Home: 'HomeTabNavigators',
+        Details: 'details/:id',
+        NotificationScreen: 'notification',
+      },
+    },
+    async getInitialURL() {
+      const url = await Linking.getInitialURL();
+      if (typeof url === 'string') {
+        // dispatch(NAVIGATING_FROM_NOTIFICATION())
+        return url;
+      }
+      //getInitialNotification: When the application is opened from a quit state.
+      const message = await messaging().getInitialNotification();
+      const deeplinkURL = buildDeepLinkFromNotificationData(message?.data);
+      if (typeof deeplinkURL === 'string') {
+        setFalse();
+        return deeplinkURL;
+      }
+    },
+    subscribe(listener) {
+      const onReceiveURL = ({url}) => {
+        listener(url);
+      };
 
-  //     // Listen to incoming links from deep linking
-  //     const linkingSubscription = Linking.addEventListener('url', onReceiveURL);
+      // Listen to incoming links from deep linking
+      const linkingSubscription = Linking.addEventListener('url', onReceiveURL);
 
-  //     //onNotificationOpenedApp: When the application is running, but in the background.
-  //     const unsubscribe = messaging().onNotificationOpenedApp(remoteMessage => {
-  //       console.log(remoteMessage);
-  //       const url = buildDeepLinkFromNotificationData(remoteMessage.data);
-  //       if (typeof url === 'string') {
-  //         listener(url);
-  //       }
-  //     });
+      //onNotificationOpenedApp: When the application is running, but in the background.
+      const unsubscribe = messaging().onNotificationOpenedApp(remoteMessage => {
+        console.log(remoteMessage);
+        const url = buildDeepLinkFromNotificationData(remoteMessage.data);
+        if (typeof url === 'string') {
+          listener(url);
+        }
+      });
 
-  //     return () => {
-  //       linkingSubscription.remove();
-  //       unsubscribe();
-  //     };
-  //   },
-  // };
+      return () => {
+        linkingSubscription.remove();
+        unsubscribe();
+      };
+    },
+  };
 
   return (
     <GestureHandlerRootView style={{flex: 1}}>
